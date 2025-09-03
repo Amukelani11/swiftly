@@ -1,0 +1,38 @@
+{
+  "sections": [
+    {
+      "section_key": "categories",
+      "section_title": "Shop by Category",
+      "section_type": "pills",
+      "is_visible": true,
+      "sort_order": 10,
+      "max_items": 8
+    },
+    {
+      "section_key": "popular_nearby",
+      "section_title": "Popular Near You",
+      "section_type": "carousel",
+      "is_visible": true,
+      "sort_order": 20,
+      "max_items": 6,
+      "filters": { "open_only": true }
+    },
+    {
+      "section_key": "top_rated",
+      "section_title": "Top Rated Stores",
+      "section_type": "list",
+      "is_visible": true,
+      "sort_order": 30,
+      "max_items": 5
+    },
+    {
+      "section_key": "promotions",
+      "section_title": "Today\u2019s Deals",
+      "section_type": "list",
+      "is_visible": true,
+      "sort_order": 40,
+      "max_items": 4
+    }
+  ]
+}
+

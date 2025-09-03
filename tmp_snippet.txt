@@ -1,0 +1,14 @@
+﻿const updateProviderLocation = useCallback(() => {
+    // In a real app, this would use expo-location to get actual GPS
+    // For now, we'll simulate a slight movement around Johannesburg CBD
+    const baseLat = -26.2041;
+    const baseLng = 28.0473;
+
+    // Add small random movement (Â±0.001 degrees â‰ˆ Â±100m)
+    const newLocation = {
+      latitude: baseLat + (Math.random() - 0.5) * 0.002,
+      longitude: baseLng + (Math.random() - 0.5) * 0.002,
+    };
+
+    setProviderLocation(newLocation);
+

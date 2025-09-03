@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "Swiftly",
+    "slug": "swifty",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/Swiftly).png",
+    "userInterfaceStyle": "light",
+    "sdkVersion": "53.0.0",
+    "splash": {
+      "image": "./assets/Swiftly).png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.swifty.app",
+      "config": {
+        "googleMapsApiKey": "AIzaSyDUMMY_KEY_FOR_TESTING"
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show nearby stores and provide delivery services.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to provide real-time delivery tracking."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/Swiftly).png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.swifty.app",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDUMMY_KEY_FOR_TESTING"
+        }
+      },
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "FOREGROUND_SERVICE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/Swiftly).png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
+    ]
+  }
+}
+
+
+
+

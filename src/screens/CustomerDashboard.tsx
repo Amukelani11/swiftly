@@ -146,6 +146,7 @@ const CustomerDashboard: React.FC = () => {
   };
 
   const prepareSectionData = () => {
+    console.log('Preparing section data from CMS content:', cmsContent);
     const newSectionData: {[key: string]: any[]} = {};
 
     // Extract data from CMS sections
@@ -153,9 +154,11 @@ const CustomerDashboard: React.FC = () => {
       if (!section.is_visible || section.section_key === 'search') continue;
 
       const data = getDataFromCmsSection(section);
+      console.log(`Section ${section.section_key} data:`, data);
       newSectionData[section.section_key] = data.slice(0, section.max_items);
     }
 
+    console.log('Final section data:', newSectionData);
     setSectionData(newSectionData);
   };
 

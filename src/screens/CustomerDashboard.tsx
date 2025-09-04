@@ -105,18 +105,41 @@ const CustomerDashboard: React.FC = () => {
 
   const fetchCMSData = async () => {
     try {
-      // First try to fetch from the admin panel API (if available)
-      const cmsResponse = await fetch('http://localhost:3000/api/cms/pages/customer_dashboard');
-      if (cmsResponse.ok) {
-        const cmsData = await cmsResponse.json();
-        setCmsPage(cmsData.page);
-        return cmsData.page;
+      console.log('🎨 Fetching CMS data for customer_dashboard...');
+      
+      // Try to fetch directly from Supabase first
+      const { data: cmsData, error: cmsError } = await supabase
+        .from('cms_pages')
+        .select('*')
+        .eq('page_key', 'customer_dashboard')
+        .eq('is_active', true)
+        .single();
+
+      if (!cmsError && cmsData) {
+        console.log('🎨 CMS data loaded from Supabase:', cmsData);
+        setCmsPage(cmsData);
+        return cmsData;
       }
+
+      // Fallback: Try admin panel API
+      try {
+        const cmsResponse = await fetch('http://localhost:3000/api/cms/pages/customer_dashboard');
+        if (cmsResponse.ok) {
+          const apiData = await cmsResponse.json();
+          console.log('🎨 CMS data loaded from API:', apiData);
+          setCmsPage(apiData.page);
+          return apiData.page;
+        }
+      } catch (apiError) {
+        console.log('🎨 Admin panel API not available');
+      }
+
+      console.log('🎨 Using fallback CMS configuration');
     } catch (error) {
-      console.log('CMS API not available, using fallback data');
+      console.error('🎨 Error fetching CMS data:', error);
     }
 
-    // Fallback to mock data if CMS API is not available
+    // Fallback to default configuration
     const fallbackCMS: CMSPage = {
       page_key: 'customer_dashboard',
       title: 'Welcome to Swiftly',
@@ -171,45 +194,68 @@ const CustomerDashboard: React.FC = () => {
       
       // Fetch CMS configuration first
       const cms = await fetchCMSData();
+      console.log('📊 Fetching dashboard data...');
       
-      // Fetch categories
+      // Fetch categories with proper column mapping
       const { data: categories, error: categoriesError } = await supabase
         .from('categories')
-        .select('*')
+        .select('id, name, slug, description, icon_name, color_code, is_active')
+        .eq('is_active', true)
         .order('name');
 
       if (categoriesError) {
-        console.error('Error fetching categories:', categoriesError);
+        console.error('❌ Error fetching categories:', categoriesError);
+      } else {
+        console.log(`✅ Loaded ${categories?.length || 0} categories`);
       }
 
-      // Fetch all stores (we'll filter based on CMS config)
+      // Fetch all stores with proper column mapping
       const { data: stores, error: storesError } = await supabase
         .from('stores')
-        .select('*')
+        .select(`
+          id, name, description, address, rating, delivery_time,
+          minimum_order, delivery_fee, image_url, category_id,
+          distance, is_featured, is_open, eta
+        `)
         .order('rating', { ascending: false });
 
       if (storesError) {
-        console.error('Error fetching stores:', storesError);
+        console.error('❌ Error fetching stores:', storesError);
+      } else {
+        console.log(`✅ Loaded ${stores?.length || 0} stores`);
       }
 
-      // Fetch active promotions
+      // Fetch active promotions with proper column mapping
       const { data: promotions, error: promotionsError } = await supabase
         .from('promotions')
-        .select('*')
+        .select('id, title, description, discount, valid_until, store_id, image_url')
         .gte('valid_until', new Date().toISOString())
         .order('valid_until');
 
       if (promotionsError) {
-        console.error('Error fetching promotions:', promotionsError);
+        console.error('❌ Error fetching promotions:', promotionsError);
+      } else {
+        console.log(`✅ Loaded ${promotions?.length || 0} active promotions`);
       }
 
+      // Map categories to match interface (icon_name -> icon, color_code -> color)
+      const mappedCategories = (categories || []).map(cat => ({
+        id: cat.id,
+        name: cat.name,
+        icon: cat.icon_name || 'storefront-outline',
+        color: cat.color_code || '#666',
+        slug: cat.slug
+      }));
+
       setData({
-        categories: categories || [],
+        categories: mappedCategories,
         stores: stores || [],
         promotions: promotions || [],
       });
+      
+      console.log('📊 Dashboard data loaded successfully');
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('❌ Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }

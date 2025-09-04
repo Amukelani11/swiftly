@@ -38,37 +38,63 @@ interface Store {
   id: string;
   name: string;
   description: string;
+  logo_url: string;
+  banner_image_url: string;
+  category: string;
+  latitude: number;
+  longitude: number;
   address: string;
+  city: string;
+  province: string;
   rating: number;
-  delivery_time: string;
-  minimum_order: number;
+  review_count: number;
   delivery_fee: number;
-  image_url: string;
-  category_id: string;
-  distance: number;
-  is_open?: boolean;
-  is_featured?: boolean;
-  cuisine_type?: string;
-  price_range?: string;
+  delivery_time_min: number;
+  delivery_time_max: number;
+  is_open: boolean;
+  opening_hours: any;
+  operating_hours: string;
+  contact_phone: string;
+  contact_email: string;
+  website_url: string;
+  is_featured: boolean;
+  is_active: boolean;
+  sort_order: number;
+  distance?: number; // Calculated field
+  delivery_time?: string; // Formatted field
 }
 
 interface Promotion {
   id: string;
   title: string;
   description: string;
+  store: string;
   discount: number;
-  valid_until: string;
-  store_id: string;
   image_url: string;
-  promo_code?: string;
+  link_url: string;
+  is_active: boolean;
+  start_date: string;
+  end_date: string;
+  sort_order: number;
+  click_count: number;
+  view_count: number;
 }
 
 interface Banner {
   id: string;
   title: string;
+  description: string;
   image_url: string;
-  link_url?: string;
+  link_url: string;
+  link_type: string;
+  linked_store_id: string;
+  linked_category: string;
   is_active: boolean;
+  sort_order: number;
+  start_date: string;
+  end_date: string;
+  click_count: number;
+  view_count: number;
 }
 
 const CustomerDashboard: React.FC = () => {
@@ -77,21 +103,7 @@ const CustomerDashboard: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [cmsContent, setCmsContent] = useState<CmsPageContent>({ sections: [] });
-  const [data, setData] = useState<{
-    categories: Category[];
-    featuredStores: Store[];
-    promotions: Promotion[];
-    banners: Banner[];
-    popularStores: Store[];
-    topRatedStores: Store[];
-  }>({
-    categories: [],
-    featuredStores: [],
-    promotions: [],
-    banners: [],
-    popularStores: [],
-    topRatedStores: [],
-  });
+  const [sectionData, setSectionData] = useState<{[key: string]: any[]}>({});
   const [loading, setLoading] = useState(true);
   const viewShotRef = useRef<ViewShot>(null);
 
@@ -168,77 +180,129 @@ const CustomerDashboard: React.FC = () => {
     }
   };
 
+  const fetchDataForSection = async (sectionKey: string, filters?: any, maxItems?: number) => {
+    try {
+      switch (sectionKey) {
+        case 'categories':
+          const { data: categories, error: categoriesError } = await supabase
+            .from('categories')
+            .select('*')
+            .eq('is_active', true)
+            .order('display_order', { ascending: true })
+            .limit(maxItems || 20);
+          
+          if (categoriesError) console.error('Error fetching categories:', categoriesError);
+          return categories || [];
+
+        case 'stores':
+        case 'featured_stores':
+        case 'popular_nearby':
+        case 'nearby_stores':
+        case 'top_rated':
+          let storeQuery = supabase
+            .from('stores')
+            .select('*')
+            .eq('is_active', true);
+
+          // Apply filters based on section
+          if (sectionKey === 'featured_stores' || filters?.featured_only) {
+            storeQuery = storeQuery.eq('is_featured', true);
+          }
+          
+          if (filters?.open_only) {
+            storeQuery = storeQuery.eq('is_open', true);
+          }
+
+          if (filters?.category) {
+            storeQuery = storeQuery.eq('category', filters.category);
+          }
+
+          // Apply sorting
+          if (filters?.sort === 'rating') {
+            storeQuery = storeQuery.order('rating', { ascending: false });
+          } else if (filters?.sort === 'distance') {
+            // For now, we'll sort by a mock distance field
+            storeQuery = storeQuery.order('created_at', { ascending: false });
+          } else {
+            storeQuery = storeQuery.order('sort_order', { ascending: true });
+          }
+
+          storeQuery = storeQuery.limit(maxItems || 10);
+
+          const { data: stores, error: storesError } = await storeQuery;
+          if (storesError) console.error('Error fetching stores:', storesError);
+          
+          // Add mock distance calculation
+          return (stores || []).map((store: any) => ({
+            ...store,
+            distance: Math.round(Math.random() * 5 * 10) / 10,
+            delivery_time: `${store.delivery_time_min}-${store.delivery_time_max} min`,
+          }));
+
+        case 'promotions':
+          const { data: promotions, error: promotionsError } = await supabase
+            .from('promotions')
+            .select('*')
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true })
+            .limit(maxItems || 10);
+
+          if (promotionsError) console.error('Error fetching promotions:', promotionsError);
+          return promotions || [];
+
+        case 'banners':
+          const { data: banners, error: bannersError } = await supabase
+            .from('banners')
+            .select('*')
+            .eq('is_active', true)
+            .order('sort_order', { ascending: true })
+            .limit(maxItems || 5);
+
+          if (bannersError) console.error('Error fetching banners:', bannersError);
+          return banners || [];
+
+        default:
+          return [];
+      }
+    } catch (error) {
+      console.error(`Error fetching data for section ${sectionKey}:`, error);
+      return [];
+    }
+  };
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       
       // Fetch CMS content first
       await fetchCmsContent();
-      
-      // Fetch categories
-      const { data: categories, error: categoriesError } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name');
-
-      if (categoriesError) {
-        console.error('Error fetching categories:', categoriesError);
-      }
-
-      // Fetch stores
-      const { data: allStores, error: storesError } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('is_active', true)
-        .order('rating', { ascending: false });
-
-      if (storesError) {
-        console.error('Error fetching stores:', storesError);
-      }
-
-      // Fetch promotions
-      const { data: promotions, error: promotionsError } = await supabase
-        .from('promotions')
-        .select('*')
-        .eq('is_active', true)
-        .gte('valid_until', new Date().toISOString())
-        .order('valid_until')
-        .limit(10);
-
-      if (promotionsError) {
-        console.error('Error fetching promotions:', promotionsError);
-      }
-
-      // Fetch banners
-      const { data: banners, error: bannersError } = await supabase
-        .from('banners')
-        .select('*')
-        .eq('is_active', true)
-        .order('position')
-        .limit(5);
-
-      if (bannersError) {
-        console.error('Error fetching banners:', bannersError);
-      }
-
-      // Calculate distances for stores (mock calculation for now)
-      const storesWithDistance = (allStores || []).map((store: any) => ({
-        ...store,
-        distance: Math.round(Math.random() * 5 * 10) / 10, // Mock distance calculation
-      }));
-
-      setData({
-        categories: categories || [],
-        featuredStores: storesWithDistance.filter((s: Store) => s.is_featured),
-        promotions: promotions || [],
-        banners: banners || [],
-        popularStores: storesWithDistance.filter((s: Store) => s.is_open).sort((a: Store, b: Store) => b.rating - a.rating),
-        topRatedStores: storesWithDistance.sort((a: Store, b: Store) => b.rating - a.rating),
-      });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSectionDataAsync = async () => {
+    try {
+      const newSectionData: {[key: string]: any[]} = {};
+
+      // Fetch data for each visible CMS section
+      for (const section of cmsContent.sections || []) {
+        if (!section.is_visible || section.section_key === 'search') continue;
+
+        const data = await fetchDataForSection(
+          section.section_key,
+          section.filters,
+          section.max_items
+        );
+
+        newSectionData[section.section_key] = data;
+      }
+
+      setSectionData(newSectionData);
+    } catch (error) {
+      console.error('Error fetching section data:', error);
     }
   };
 
@@ -258,9 +322,17 @@ const CustomerDashboard: React.FC = () => {
     };
   }, []);
 
+  // Fetch section data when CMS content changes
+  useEffect(() => {
+    if (cmsContent.sections && cmsContent.sections.length > 0) {
+      fetchSectionDataAsync();
+    }
+  }, [cmsContent]);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchDashboardData();
+    await fetchSectionDataAsync();
     setRefreshing(false);
   };
 
@@ -342,6 +414,9 @@ const CustomerDashboard: React.FC = () => {
       <Image source={{ uri: banner.image_url }} style={styles.bannerImage} />
       <View style={styles.bannerOverlay}>
         <Text style={styles.bannerTitle}>{banner.title}</Text>
+        {banner.description && (
+          <Text style={styles.bannerDescription}>{banner.description}</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -366,7 +441,7 @@ const CustomerDashboard: React.FC = () => {
       onPress={() => handleStorePress(store)}
     >
       <View style={styles.storeImageContainer}>
-        <Image source={{ uri: store.image_url }} style={layout === 'carousel' ? styles.storeImage : styles.storeListImage} />
+        <Image source={{ uri: store.banner_image_url || store.logo_url }} style={layout === 'carousel' ? styles.storeImage : styles.storeListImage} />
         {store.delivery_fee === 0 && (
           <View style={styles.freeDeliveryBadge}>
             <Text style={styles.freeDeliveryText}>Free delivery</Text>
@@ -381,16 +456,17 @@ const CustomerDashboard: React.FC = () => {
       <View style={styles.storeInfo}>
         <View style={styles.storeHeader}>
           <Text style={styles.storeName} numberOfLines={1}>{store.name}</Text>
-          <Text style={styles.priceRange}>{store.price_range}</Text>
+          <Text style={styles.priceRange}>{store.category}</Text>
         </View>
         <Text style={styles.storeDescription} numberOfLines={1}>{store.description}</Text>
         <View style={styles.storeMeta}>
           <View style={styles.ratingContainer}>
             <Ionicons name="star" size={14} color="#FFD700" />
             <Text style={styles.rating}>{store.rating}</Text>
+            <Text style={styles.reviewCount}>({store.review_count})</Text>
           </View>
           <Text style={styles.metaSeparator}>•</Text>
-          <Text style={styles.deliveryTime}>{store.delivery_time}</Text>
+          <Text style={styles.deliveryTime}>{store.delivery_time || `${store.delivery_time_min}-${store.delivery_time_max} min`}</Text>
           {store.delivery_fee > 0 && (
             <>
               <Text style={styles.metaSeparator}>•</Text>
@@ -421,9 +497,7 @@ const CustomerDashboard: React.FC = () => {
             <Text style={styles.promotionDiscount}>{promotion.discount}% OFF</Text>
           </View>
         )}
-        {promotion.promo_code && (
-          <Text style={styles.promoCode}>Code: {promotion.promo_code}</Text>
-        )}
+        <Text style={styles.promoStore}>{promotion.store}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -431,28 +505,13 @@ const CustomerDashboard: React.FC = () => {
   const renderSection = (section: CmsSection) => {
     if (!section.is_visible) return null;
 
-    const getSectionData = () => {
-      switch (section.section_key) {
-        case 'categories':
-          return data.categories.slice(0, section.max_items || 8);
-        case 'popular_nearby':
-          return data.popularStores.slice(0, section.max_items || 6);
-        case 'top_rated':
-          return data.topRatedStores.slice(0, section.max_items || 5);
-        case 'promotions':
-          return data.promotions.slice(0, section.max_items || 4);
-        case 'banners':
-          return data.banners.slice(0, section.max_items || 3);
-        case 'featured':
-          return data.featuredStores.slice(0, section.max_items || 6);
-        default:
-          return [];
-      }
-    };
+    // Get data for this specific section
+    const currentSectionData = sectionData[section.section_key] || [];
+    
+    // Don't render empty sections (except search)
+    if (currentSectionData.length === 0 && section.section_key !== 'search') return null;
 
-    const sectionData = getSectionData();
-    if (sectionData.length === 0 && section.section_key !== 'search') return null;
-
+    // Handle search section
     if (section.section_key === 'search') {
       return (
         <View key={section.section_key} style={styles.section}>
@@ -461,43 +520,67 @@ const CustomerDashboard: React.FC = () => {
       );
     }
 
-    if (section.section_key === 'banners') {
-      return (
-        <View key={section.section_key} style={styles.section}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bannersContainer}>
-            {data.banners.map(renderBannerCard)}
-          </ScrollView>
-        </View>
-      );
-    }
-
     return (
       <View key={section.section_key} style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>{section.section_title}</Text>
-          {(section.section_key === 'popular_nearby' || section.section_key === 'top_rated') && (
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* Section Header */}
+        {section.section_title && (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{section.section_title}</Text>
+            {(section.section_key.includes('stores') || section.section_key.includes('nearby') || section.section_key.includes('rated')) && (
+              <TouchableOpacity>
+                <Text style={styles.seeAllText}>See all</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
         
-        {section.layout === 'pills' && section.section_key === 'categories' ? (
+        {/* Render content based on layout and section type */}
+        {section.layout === 'banner' && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.bannersContainer}>
+            {currentSectionData.map((banner: Banner) => renderBannerCard(banner))}
+          </ScrollView>
+        )}
+        
+        {section.layout === 'pills' && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.categoriesContainer}>
-              {data.categories.map(renderCategoryItem)}
+              {currentSectionData.map((category: Category) => renderCategoryItem(category))}
             </View>
           </ScrollView>
-        ) : section.layout === 'carousel' ? (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        )}
+        
+        {section.layout === 'carousel' && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.carouselContainer}>
             {section.section_key === 'promotions' 
-              ? data.promotions.map(renderPromotionCard)
-              : (sectionData as Store[]).map((store) => renderStoreCard(store, 'carousel'))
+              ? currentSectionData.map((promotion: Promotion) => renderPromotionCard(promotion))
+              : currentSectionData.map((store: Store) => renderStoreCard(store, 'carousel'))
             }
           </ScrollView>
-        ) : (
+        )}
+        
+        {section.layout === 'list' && (
           <View style={styles.listContainer}>
-            {(sectionData as Store[]).map((store) => renderStoreCard(store, 'list'))}
+            {currentSectionData.map((store: Store) => renderStoreCard(store, 'list'))}
+          </View>
+        )}
+        
+        {section.layout === 'grid' && (
+          <View style={styles.gridContainer}>
+            {currentSectionData.map((item: any, index: number) => {
+              if (section.section_key === 'categories') {
+                return (
+                  <View key={item.id} style={styles.gridCategoryItem}>
+                    {renderCategoryItem(item)}
+                  </View>
+                );
+              } else {
+                return (
+                  <View key={item.id} style={styles.gridStoreItem}>
+                    {renderStoreCard(item, 'list')}
+                  </View>
+                );
+              }
+            })}
           </View>
         )}
       </View>
@@ -717,6 +800,12 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: 'white',
   },
+  bannerDescription: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontWeight: '400',
+    marginTop: 4,
+  },
   
   // Category Pills Styles
   categoriesContainer: {
@@ -860,6 +949,12 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '600',
   },
+  reviewCount: {
+    marginLeft: 2,
+    fontSize: 12,
+    color: '#999',
+    fontWeight: '400',
+  },
   metaSeparator: {
     marginHorizontal: 6,
     color: '#ccc',
@@ -929,7 +1024,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: 'white',
   },
-  promoCode: {
+  promoStore: {
     fontSize: 12,
     color: 'rgba(255, 255, 255, 0.8)',
     fontWeight: '500',
@@ -938,6 +1033,36 @@ const styles = StyleSheet.create({
   // List Container
   listContainer: {
     paddingHorizontal: 0,
+  },
+  
+  // Carousel Container
+  carouselContainer: {
+    paddingLeft: 20,
+  },
+  
+  // Grid Container
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 20,
+    justifyContent: 'space-between',
+  },
+  gridCategoryItem: {
+    width: (width - 60) / 4,
+    marginBottom: 16,
+  },
+  gridStoreItem: {
+    width: (width - 50) / 2,
+    marginBottom: 16,
+  },
+  
+  // Updated promotion styles
+  promotionGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '60%',
   },
 });
 

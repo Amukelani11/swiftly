@@ -9,14 +9,14 @@ VALUES (
     "sections": [
       {
         "section_key": "search",
-        "section_title": "Search",
+        "section_title": "",
         "layout": "text",
         "is_visible": true,
         "sort_order": 0
       },
       {
         "section_key": "banners",
-        "section_title": "Special Offers",
+        "section_title": "",
         "layout": "banner",
         "is_visible": true,
         "sort_order": 1,
@@ -31,25 +31,26 @@ VALUES (
         "max_items": 8
       },
       {
-        "section_key": "popular_nearby",
-        "section_title": "Popular near you",
+        "section_key": "featured_stores",
+        "section_title": "Featured restaurants",
         "layout": "carousel",
         "is_visible": true,
         "sort_order": 3,
         "max_items": 6,
         "filters": {
-          "open_only": true,
-          "sort": "rating"
+          "featured_only": true,
+          "open_only": true
         }
       },
       {
-        "section_key": "top_rated",
-        "section_title": "Top rated",
-        "layout": "list",
+        "section_key": "popular_nearby",
+        "section_title": "Popular near you",
+        "layout": "carousel",
         "is_visible": true,
         "sort_order": 4,
-        "max_items": 5,
+        "max_items": 6,
         "filters": {
+          "open_only": true,
           "sort": "rating"
         }
       },
@@ -60,6 +61,17 @@ VALUES (
         "is_visible": true,
         "sort_order": 5,
         "max_items": 4
+      },
+      {
+        "section_key": "top_rated",
+        "section_title": "Top rated",
+        "layout": "list",
+        "is_visible": true,
+        "sort_order": 6,
+        "max_items": 5,
+        "filters": {
+          "sort": "rating"
+        }
       }
     ]
   }',

@@ -51,6 +51,7 @@ const CustomerDashboard: React.FC = () => {
 
       if (cmsError) {
         console.log('CMS data not found, using default layout');
+        console.log('CMS Error:', cmsError);
         // Use default layout with sample data if CMS data is not available
         setCmsContent({
           sections: [
@@ -102,6 +103,7 @@ const CustomerDashboard: React.FC = () => {
           ],
         });
       } else {
+        console.log('CMS data loaded successfully:', cmsData);
         setCmsContent(cmsData.content || { sections: [] });
       }
     } catch (error) {
@@ -195,7 +197,7 @@ const CustomerDashboard: React.FC = () => {
   };
 
   const handlePromotionPress = (promotion: Promotion) => {
-    // navigation.navigate('StoreDetail', { storeId: promotion.store_id });
+    // navigation.navigate('StoreDetail', { store: promotion.store });
   };
 
   const handleBannerPress = (banner: Banner) => {

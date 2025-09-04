@@ -1,7 +1,7 @@
 # Customer Dashboard Setup Guide
 
 ## Overview
-The Customer Dashboard has been redesigned to match the sleek, modern UI of world-class food delivery apps like Uber Eats, Bolt Food, and DoorDash. It now includes full CMS integration for dynamic content management.
+The Customer Dashboard has been redesigned to match the sleek, modern UI of world-class food delivery apps like Uber Eats, Bolt Food, and DoorDash. It uses ONLY your existing `cms_pages` table for all content management.
 
 ## Features
 
@@ -11,51 +11,31 @@ The Customer Dashboard has been redesigned to match the sleek, modern UI of worl
 - Card-based layouts with subtle shadows
 - Responsive design that works on all screen sizes
 
-### 🔧 CMS Integration
-- Dynamic sections controlled by the `cms_pages` table
-- Configurable layouts: pills, carousel, list, banner, text
+### 🔧 Pure CMS Integration
+- **Everything comes from `cms_pages` table** - no additional tables needed
+- ALL content (categories, stores, banners, promotions) stored in CMS JSON
+- Dynamic sections controlled by CMS configuration
+- Configurable layouts: pills, carousel, list, banner, text, grid
 - Real-time updates when CMS content changes
 - Flexible section ordering and visibility controls
 
-### 🏪 Store Management
-- Real store data from the `stores` table
-- Featured stores highlighting
-- Rating and delivery time display
-- Open/closed status indicators
-- Free delivery badges
-
-### 🎁 Promotions & Banners
-- Dynamic promotional banners
-- Discount codes and special offers
-- Time-limited promotions
-- Attractive visual presentation
-
-### 🔍 Search Functionality
-- Modern search bar design
-- Placeholder text matching food delivery apps
-- Ready for search implementation
+### 🏪 Content Management
+- Categories, stores, banners, promotions all managed via CMS
+- No hardcoded data - everything is configurable
+- Easy to add/remove/modify content through admin panel
+- Flexible data structure in JSON format
 
 ## Setup Instructions
 
 ### 1. Database Setup
 
-First, create the required tables by running these SQL scripts in your Supabase SQL editor:
-
-```sql
--- Run additional_tables.sql to create stores, promotions, and banners tables
--- Run sample_dashboard_data.sql to populate with sample data
--- Run sample_cms_data.sql to configure the dashboard layout
-```
+You only need your existing `cms_pages` table! No additional tables required.
 
 ### 2. Required Tables
 
-The dashboard expects these tables to exist:
+The dashboard uses ONLY:
 
-- `cms_pages` - For dynamic content management ✅
-- `categories` - For service categories ✅ 
-- `stores` - For restaurant/store listings (new)
-- `promotions` - For deals and discounts (new)
-- `banners` - For promotional banners (new)
+- `cms_pages` - For ALL content management ✅ (you already have this)
 
 ### 3. CMS Configuration
 

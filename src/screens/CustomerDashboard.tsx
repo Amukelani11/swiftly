@@ -20,82 +20,15 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import ViewShot from 'react-native-view-shot';
 import * as FileSystem from 'expo-file-system';
-import { CmsSection, CmsPageContent } from '../types/cms';
+import { CmsSection, CmsPageContent, CmsCategory, CmsStore, CmsPromotion, CmsBanner } from '../types/cms';
 
 const { width } = Dimensions.get('window');
 
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  icon_name: string;
-  color_code: string;
-  is_active: boolean;
-}
-
-interface Store {
-  id: string;
-  name: string;
-  description: string;
-  logo_url: string;
-  banner_image_url: string;
-  category: string;
-  latitude: number;
-  longitude: number;
-  address: string;
-  city: string;
-  province: string;
-  rating: number;
-  review_count: number;
-  delivery_fee: number;
-  delivery_time_min: number;
-  delivery_time_max: number;
-  is_open: boolean;
-  opening_hours: any;
-  operating_hours: string;
-  contact_phone: string;
-  contact_email: string;
-  website_url: string;
-  is_featured: boolean;
-  is_active: boolean;
-  sort_order: number;
-  distance?: number; // Calculated field
-  delivery_time?: string; // Formatted field
-}
-
-interface Promotion {
-  id: string;
-  title: string;
-  description: string;
-  store: string;
-  discount: number;
-  image_url: string;
-  link_url: string;
-  is_active: boolean;
-  start_date: string;
-  end_date: string;
-  sort_order: number;
-  click_count: number;
-  view_count: number;
-}
-
-interface Banner {
-  id: string;
-  title: string;
-  description: string;
-  image_url: string;
-  link_url: string;
-  link_type: string;
-  linked_store_id: string;
-  linked_category: string;
-  is_active: boolean;
-  sort_order: number;
-  start_date: string;
-  end_date: string;
-  click_count: number;
-  view_count: number;
-}
+// Use CMS types directly
+type Category = CmsCategory;
+type Store = CmsStore;
+type Promotion = CmsPromotion;
+type Banner = CmsBanner;
 
 const CustomerDashboard: React.FC = () => {
   const navigation = useNavigation();
@@ -180,93 +113,24 @@ const CustomerDashboard: React.FC = () => {
     }
   };
 
-  const fetchDataForSection = async (sectionKey: string, filters?: any, maxItems?: number) => {
-    try {
-      switch (sectionKey) {
-        case 'categories':
-          const { data: categories, error: categoriesError } = await supabase
-            .from('categories')
-            .select('*')
-            .eq('is_active', true)
-            .order('display_order', { ascending: true })
-            .limit(maxItems || 20);
-          
-          if (categoriesError) console.error('Error fetching categories:', categoriesError);
-          return categories || [];
-
-        case 'stores':
-        case 'featured_stores':
-        case 'popular_nearby':
-        case 'nearby_stores':
-        case 'top_rated':
-          let storeQuery = supabase
-            .from('stores')
-            .select('*')
-            .eq('is_active', true);
-
-          // Apply filters based on section
-          if (sectionKey === 'featured_stores' || filters?.featured_only) {
-            storeQuery = storeQuery.eq('is_featured', true);
-          }
-          
-          if (filters?.open_only) {
-            storeQuery = storeQuery.eq('is_open', true);
-          }
-
-          if (filters?.category) {
-            storeQuery = storeQuery.eq('category', filters.category);
-          }
-
-          // Apply sorting
-          if (filters?.sort === 'rating') {
-            storeQuery = storeQuery.order('rating', { ascending: false });
-          } else if (filters?.sort === 'distance') {
-            // For now, we'll sort by a mock distance field
-            storeQuery = storeQuery.order('created_at', { ascending: false });
-          } else {
-            storeQuery = storeQuery.order('sort_order', { ascending: true });
-          }
-
-          storeQuery = storeQuery.limit(maxItems || 10);
-
-          const { data: stores, error: storesError } = await storeQuery;
-          if (storesError) console.error('Error fetching stores:', storesError);
-          
-          // Add mock distance calculation
-          return (stores || []).map((store: any) => ({
-            ...store,
-            distance: Math.round(Math.random() * 5 * 10) / 10,
-            delivery_time: `${store.delivery_time_min}-${store.delivery_time_max} min`,
-          }));
-
-        case 'promotions':
-          const { data: promotions, error: promotionsError } = await supabase
-            .from('promotions')
-            .select('*')
-            .eq('is_active', true)
-            .order('sort_order', { ascending: true })
-            .limit(maxItems || 10);
-
-          if (promotionsError) console.error('Error fetching promotions:', promotionsError);
-          return promotions || [];
-
-        case 'banners':
-          const { data: banners, error: bannersError } = await supabase
-            .from('banners')
-            .select('*')
-            .eq('is_active', true)
-            .order('sort_order', { ascending: true })
-            .limit(maxItems || 5);
-
-          if (bannersError) console.error('Error fetching banners:', bannersError);
-          return banners || [];
-
-        default:
-          return [];
-      }
-    } catch (error) {
-      console.error(`Error fetching data for section ${sectionKey}:`, error);
-      return [];
+  const getDataFromCmsSection = (section: CmsSection): any[] => {
+    // All data comes from the CMS section content itself
+    // No external database queries for content
+    
+    switch (section.section_key) {
+      case 'categories':
+        return section.categories || [];
+      case 'stores':
+      case 'featured_stores':
+      case 'popular_nearby':
+      case 'top_rated':
+        return section.stores || [];
+      case 'promotions':
+        return section.promotions || [];
+      case 'banners':
+        return section.banners || [];
+      default:
+        return [];
     }
   };
 
@@ -274,7 +138,7 @@ const CustomerDashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      // Fetch CMS content first
+      // Fetch CMS content - this contains ALL the data
       await fetchCmsContent();
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -283,27 +147,18 @@ const CustomerDashboard: React.FC = () => {
     }
   };
 
-  const fetchSectionDataAsync = async () => {
-    try {
-      const newSectionData: {[key: string]: any[]} = {};
+  const prepareSectionData = () => {
+    const newSectionData: {[key: string]: any[]} = {};
 
-      // Fetch data for each visible CMS section
-      for (const section of cmsContent.sections || []) {
-        if (!section.is_visible || section.section_key === 'search') continue;
+    // Extract data from CMS sections
+    for (const section of cmsContent.sections || []) {
+      if (!section.is_visible || section.section_key === 'search') continue;
 
-        const data = await fetchDataForSection(
-          section.section_key,
-          section.filters,
-          section.max_items
-        );
-
-        newSectionData[section.section_key] = data;
-      }
-
-      setSectionData(newSectionData);
-    } catch (error) {
-      console.error('Error fetching section data:', error);
+      const data = getDataFromCmsSection(section);
+      newSectionData[section.section_key] = data.slice(0, section.max_items);
     }
+
+    setSectionData(newSectionData);
   };
 
   useEffect(() => {
@@ -322,17 +177,16 @@ const CustomerDashboard: React.FC = () => {
     };
   }, []);
 
-  // Fetch section data when CMS content changes
+  // Prepare section data when CMS content changes
   useEffect(() => {
     if (cmsContent.sections && cmsContent.sections.length > 0) {
-      fetchSectionDataAsync();
+      prepareSectionData();
     }
   }, [cmsContent]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchDashboardData();
-    await fetchSectionDataAsync();
     setRefreshing(false);
   };
 
@@ -441,7 +295,7 @@ const CustomerDashboard: React.FC = () => {
       onPress={() => handleStorePress(store)}
     >
       <View style={styles.storeImageContainer}>
-        <Image source={{ uri: store.banner_image_url || store.logo_url }} style={layout === 'carousel' ? styles.storeImage : styles.storeListImage} />
+        <Image source={{ uri: store.banner_image_url }} style={layout === 'carousel' ? styles.storeImage : styles.storeListImage} />
         {store.delivery_fee === 0 && (
           <View style={styles.freeDeliveryBadge}>
             <Text style={styles.freeDeliveryText}>Free delivery</Text>
@@ -466,7 +320,7 @@ const CustomerDashboard: React.FC = () => {
             <Text style={styles.reviewCount}>({store.review_count})</Text>
           </View>
           <Text style={styles.metaSeparator}>•</Text>
-          <Text style={styles.deliveryTime}>{store.delivery_time || `${store.delivery_time_min}-${store.delivery_time_max} min`}</Text>
+          <Text style={styles.deliveryTime}>{`${store.delivery_time_min}-${store.delivery_time_max} min`}</Text>
           {store.delivery_fee > 0 && (
             <>
               <Text style={styles.metaSeparator}>•</Text>

@@ -51,57 +51,53 @@ const CustomerDashboard: React.FC = () => {
 
       if (cmsError) {
         console.log('CMS data not found, using default layout');
-        // Use default layout if CMS data is not available
+        // Use default layout with sample data if CMS data is not available
         setCmsContent({
           sections: [
             {
               section_key: 'search',
-              section_title: 'Search',
+              section_title: '',
               layout: 'text',
               is_visible: true,
               sort_order: 0,
-            },
-            {
-              section_key: 'banners',
-              section_title: 'Special Offers',
-              layout: 'banner',
-              is_visible: true,
-              sort_order: 1,
-              max_items: 3,
             },
             {
               section_key: 'categories',
               section_title: 'What are you looking for?',
               layout: 'pills',
               is_visible: true,
-              sort_order: 2,
+              sort_order: 1,
               max_items: 8,
-            },
-            {
-              section_key: 'popular_nearby',
-              section_title: 'Popular near you',
-              layout: 'carousel',
-              is_visible: true,
-              sort_order: 3,
-              max_items: 6,
-              filters: { open_only: true, sort: 'rating' },
-            },
-            {
-              section_key: 'top_rated',
-              section_title: 'Top rated',
-              layout: 'list',
-              is_visible: true,
-              sort_order: 4,
-              max_items: 5,
-              filters: { sort: 'rating' },
-            },
-            {
-              section_key: 'promotions',
-              section_title: "Today's deals",
-              layout: 'carousel',
-              is_visible: true,
-              sort_order: 5,
-              max_items: 4,
+              categories: [
+                {
+                  id: '1',
+                  name: 'Restaurants',
+                  slug: 'restaurants',
+                  icon_name: 'restaurant',
+                  color_code: '#FF6B6B',
+                },
+                {
+                  id: '2',
+                  name: 'Fast Food',
+                  slug: 'fast_food',
+                  icon_name: 'fast-food',
+                  color_code: '#FFA500',
+                },
+                {
+                  id: '3',
+                  name: 'Coffee',
+                  slug: 'coffee',
+                  icon_name: 'cafe',
+                  color_code: '#8B4513',
+                },
+                {
+                  id: '4',
+                  name: 'Groceries',
+                  slug: 'grocery',
+                  icon_name: 'storefront',
+                  color_code: '#4CAF50',
+                },
+              ],
             },
           ],
         });

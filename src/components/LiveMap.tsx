@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,15 @@ import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  Platform,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapboxGL from '@react-native-mapbox-gl/maps';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { googleMaps } from '../lib/googleMaps';
 
 const { width, height } = Dimensions.get('window');
+
+// Mapbox access token (provided by user)
+MapboxGL.setAccessToken('sk.eyJ1IjoiZG9yaXNtYWR1bmEiLCJhIjoiY21mYmxxaHMwMDY3ZDJsczA4Z2VxMjMzYSJ9.AkCgJYDxiZunrXP-xFR6xgOn');
 
 interface Store {
   id: string;
@@ -81,16 +83,13 @@ const LiveMap: React.FC<LiveMapProps> = ({
     }
   }, [stores, visible, providerLocation]);
 
-  // Debug: Check if MapView component is being rendered
+  // Debug: Check if Map component is being rendered
   useEffect(() => {
     if (visible) {
-      console.log('ðŸŽ¯ LiveMap COMPONENT RENDERING:', {
+      console.log('🎯 LiveMap COMPONENT RENDERING:', {
         visible,
         storeCount: stores.length,
-        providerLocation: {
-          latitude: providerLocation.latitude,
-          longitude: providerLocation.longitude,
-        },
+        providerLocation,
       });
     }
   }, [visible, stores.length, providerLocation]);
@@ -219,50 +218,31 @@ const LiveMap: React.FC<LiveMapProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Real Google Maps Display */}
+      {/* Mapbox Display */}
       <View style={styles.mapContainer}>
-        <MapView
-          style={styles.map}
-          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-          region={{
-            latitude: providerLocation.latitude,
-            longitude: providerLocation.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          }}
-          showsUserLocation={true}
-          showsMyLocationButton={true}
-          zoomEnabled={true}
-          scrollEnabled={true}
-          mapType="standard"
-        >
-          {/* Provider Location Marker */}
-          <Marker
-            coordinate={{
-              latitude: providerLocation.latitude,
-              longitude: providerLocation.longitude,
-            }}
-            title="Your Location"
-            description="Current provider location"
-            pinColor="#00D4AA"
+        <MapboxGL.MapView style={styles.map} styleURL={MapboxGL.StyleURL.Street}>
+          <MapboxGL.Camera
+            centerCoordinate={[providerLocation.longitude, providerLocation.latitude]}
+            zoomLevel={14}
+          />
+
+          {/* Provider Location */}
+          <MapboxGL.PointAnnotation
+            id="provider-location"
+            coordinate={[providerLocation.longitude, providerLocation.latitude]}
           />
 
           {/* Store Markers */}
           {showStores && stores.map((store, index) => (
             store.latitude && store.longitude && (
-              <Marker
+              <MapboxGL.PointAnnotation
                 key={store.id || `store-${index}`}
-                coordinate={{
-                  latitude: store.latitude,
-                  longitude: store.longitude,
-                }}
-                title={store.name || 'Store'}
-                description={`${store.address || 'Store location'} â€¢ ${store.distance?.toFixed(1)}km`}
-                pinColor={store.isOpen ? "#4CAF50" : "#F44336"}
+                id={store.id || `store-${index}`}
+                coordinate={[store.longitude, store.latitude]}
               />
             )
           ))}
-        </MapView>
+        </MapboxGL.MapView>
 
         {/* Map Overlay with Store Count */}
         {showStores && stores.length > 0 && (
@@ -274,16 +254,6 @@ const LiveMap: React.FC<LiveMapProps> = ({
           </View>
         )}
       </View>
-
-      {/* TEMPORARILY REMOVED: Stores List - testing map isolation */}
-      {/*
-      <View style={styles.storesContainer}>
-        <Text style={styles.sectionTitle}>Nearby Stores</Text>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Stores list temporarily disabled for map testing</Text>
-        </View>
-      </View>
-      */}
     </View>
   );
 };

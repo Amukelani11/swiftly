@@ -62,16 +62,18 @@ serve(async (req) => {
     console.log(`Path parts:`, pathParts);
     console.log(`Processing endpoint from body: ${endpoint}`);
 
-    // Get Google Maps API key from environment
+    // NOTE: Google Maps proxy is deprecated. This function is retained for backward compatibility
+    // but should be removed if you no longer need Google Maps APIs. Currently the function will
+    // return a helpful error indicating deprecation.
     const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY');
     if (!GOOGLE_MAPS_API_KEY) {
-      console.error('GOOGLE_MAPS_API_KEY environment variable not set');
+      console.error('GOOGLE_MAPS_API_KEY environment variable not set (Mapbox migration in progress)');
       return new Response(
         JSON.stringify({
-          error: 'Google Maps API key not configured. Please set GOOGLE_MAPS_API_KEY environment variable.'
+          error: 'Google Maps API key not configured. This proxy is deprecated — migrate to Mapbox APIs.'
         }),
         {
-          status: 500,
+          status: 410,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );

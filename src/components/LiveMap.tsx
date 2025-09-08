@@ -11,6 +11,7 @@ import {
 import MapboxGL from '@react-native-mapbox-gl/maps';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { googleMaps } from '../lib/googleMaps';
+import MapboxNavigator from './MapboxNavigator';
 
 const { width, height } = Dimensions.get('window');
 
@@ -99,34 +100,13 @@ const LiveMap: React.FC<LiveMapProps> = ({
       setLoading(true);
       console.log('Loading nearby stores...');
 
-      // Use the Edge Function to get real stores
-      const response = await googleMaps.findPickupLocations(
-        { lat: providerLocation.latitude, lng: providerLocation.longitude },
-        {
-          radius: 2000,
-          type: 'grocery_or_supermarket',
-          openNow: true,
-        }
-      );
+      // Use Mapbox or internal store data. For now, fall back to mock stores.
+      // TODO: replace with Mapbox Geocoding/POI search when ready.
+      const response = null;
 
-      console.log('Edge Function response:', response);
-      console.log('Response type:', typeof response);
-      console.log('Response keys:', Object.keys(response));
-      console.log('Has results?', response.hasOwnProperty('results'));
-      console.log('Results length:', response.results?.length);
-
-      if (response.results && response.results.length > 0) {
-        const realStores: Store[] = response.results.slice(0, 5).map((place: any, index: number) => ({
-          id: place.place_id || `store-${index}`,
-          name: place.name,
-          address: place.vicinity,
-          distance: place.distance ? place.distance / 1000 : 0.5 + index * 0.3,
-          rating: place.rating,
-          isOpen: place.opening_hours?.open_now || true,
-          latitude: place.geometry?.location?.lat,
-          longitude: place.geometry?.location?.lng,
-        }));
-
+      if (response && response.results && response.results.length > 0) {
+        // Map response transformation placeholder
+        const realStores: Store[] = [];
         setStores(realStores);
       } else {
         // Fallback to mock data if no real stores found

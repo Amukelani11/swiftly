@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatCurrencySafe } from '../utils/format';
+import MapView, { Marker, Polyline } from 'react-native-maps';
+import { googleMaps } from '../lib/googleMaps';
 
 interface JobNotificationProps {
   visible: boolean;
@@ -19,7 +21,14 @@ interface JobNotificationProps {
     budget_max: number;
     city: string;
     distance: number;
+    dropoffLat?: number;
+    dropoffLng?: number;
+    storeLat?: number;
+    storeLng?: number;
+    net?: number;
   };
+  providerLat?: number | null;
+  providerLng?: number | null;
   onAccept: (orderId: string) => void;
   onDismiss: () => void;
 }
@@ -27,14 +36,89 @@ interface JobNotificationProps {
 const JobNotification: React.FC<JobNotificationProps> = ({
   visible,
   order,
+  providerLat,
+  providerLng,
   onAccept,
   onDismiss,
 }) => {
   const slideAnimation = useRef(new Animated.Value(300)).current;
   const opacityAnimation = useRef(new Animated.Value(0)).current;
+  const [secondsLeft, setSecondsLeft] = useState(60);
+  const mapRef = useRef<MapView | null>(null);
+  const [routeStoreToCust, setRouteStoreToCust] = useState<Array<{ latitude: number; longitude: number }> | null>(null);
+  const [routeProvToStore, setRouteProvToStore] = useState<Array<{ latitude: number; longitude: number }> | null>(null);
+  const [etaStoreMinutes, setEtaStoreMinutes] = useState<number | null>(null);
+  const [etaDropoffMinutes, setEtaDropoffMinutes] = useState<number | null>(null);
+
+  // Decode encoded polyline from Google Directions
+  const decodePolyline = (encoded: string): Array<{ latitude: number; longitude: number }> => {
+    let index = 0, lat = 0, lng = 0;
+    const coords: Array<{ latitude: number; longitude: number }> = [];
+    while (index < encoded.length) {
+      let b = 0, shift = 0, result = 0;
+      do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+      const dlat = (result & 1) ? ~(result >> 1) : (result >> 1);
+      lat += dlat;
+      shift = 0; result = 0;
+      do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+      const dlng = (result & 1) ? ~(result >> 1) : (result >> 1);
+      lng += dlng;
+      coords.push({ latitude: lat / 1e5, longitude: lng / 1e5 });
+    }
+    return coords;
+  };
+
+  // Fetch smoothed polylines when visible
+  useEffect(() => {
+    const run = async () => {
+      try {
+        if (typeof order.storeLat === 'number' && typeof order.storeLng === 'number' && typeof order.dropoffLat === 'number' && typeof order.dropoffLng === 'number') {
+          const d = await googleMaps.getDirections({ lat: order.storeLat, lng: order.storeLng }, { lat: order.dropoffLat, lng: order.dropoffLng }, { mode: 'driving', region: 'za' });
+          const points = d?.routes?.[0]?.overview_polyline?.points;
+          setRouteStoreToCust(points ? decodePolyline(points) : null);
+          // ETA store -> customer
+          try {
+            const dm = await googleMaps.getDistanceMatrix(
+              { lat: order.storeLat, lng: order.storeLng },
+              [{ lat: order.dropoffLat, lng: order.dropoffLng }],
+              { mode: 'driving', departure_time: 'now', units: 'metric' }
+            );
+            const e = dm?.rows?.[0]?.elements?.[0];
+            const mins = e?.duration_in_traffic?.value || e?.duration?.value;
+            setEtaDropoffMinutes(mins ? Math.round(mins / 60) : null);
+          } catch {}
+        } else {
+          setRouteStoreToCust(null);
+          }
+        if (typeof providerLat === 'number' && typeof providerLng === 'number' && typeof order.storeLat === 'number' && typeof order.storeLng === 'number') {
+          const d2 = await googleMaps.getDirections({ lat: providerLat!, lng: providerLng! }, { lat: order.storeLat, lng: order.storeLng }, { mode: 'driving', region: 'za' });
+          const pts2 = d2?.routes?.[0]?.overview_polyline?.points;
+          setRouteProvToStore(pts2 ? decodePolyline(pts2) : null);
+          // ETA provider -> store
+          try {
+            const dm2 = await googleMaps.getDistanceMatrix(
+              { lat: providerLat!, lng: providerLng! },
+              [{ lat: order.storeLat, lng: order.storeLng }],
+              { mode: 'driving', departure_time: 'now', units: 'metric' }
+            );
+            const e2 = dm2?.rows?.[0]?.elements?.[0];
+            const mins2 = e2?.duration_in_traffic?.value || e2?.duration?.value;
+            setEtaStoreMinutes(mins2 ? Math.round(mins2 / 60) : null);
+          } catch {}
+        } else {
+          setRouteProvToStore(null);
+          }
+      } catch {
+        setRouteStoreToCust(null);
+        setRouteProvToStore(null);
+      }
+    };
+    if (visible) run();
+  }, [visible, order.storeLat, order.storeLng, order.dropoffLat, order.dropoffLng, providerLat, providerLng]);
 
   useEffect(() => {
     if (visible) {
+      setSecondsLeft(60);
       // Slide up animation
       Animated.parallel([
         Animated.timing(slideAnimation, {
@@ -64,6 +148,22 @@ const JobNotification: React.FC<JobNotificationProps> = ({
       ]).start();
     }
   }, [visible, slideAnimation, opacityAnimation]);
+
+  // Countdown auto-dismiss
+  useEffect(() => {
+    if (!visible) return;
+    const id = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          clearInterval(id);
+          onDismiss();
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+  }, [visible, onDismiss]);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -110,10 +210,58 @@ const JobNotification: React.FC<JobNotificationProps> = ({
             </View>
             <Text style={styles.headerTitle}>New Order Available!</Text>
           </View>
-          <TouchableOpacity onPress={onDismiss} style={styles.closeButton}>
-            <Ionicons name="close" size={20} color="#666666" />
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Ionicons name="time-outline" size={16} color="#666" />
+            <Text style={{ marginLeft: 6, color: '#666', fontWeight: '600' }}>{secondsLeft}s</Text>
+            <TouchableOpacity onPress={onDismiss} style={[styles.closeButton, { marginLeft: 12 }]}>
+              <Ionicons name="close" size={20} color="#666666" />
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* Map Preview */}
+        {(typeof order.storeLat === 'number' || typeof order.dropoffLat === 'number') && (
+          <View style={{ height: 220, marginHorizontal: 16, marginBottom: 12, borderRadius: 12, overflow: 'hidden' }}>
+            <MapView
+              ref={mapRef}
+              style={{ flex: 1 }}
+              onMapReady={() => {
+                try {
+                  const coords: Array<{ latitude: number; longitude: number }> = [];
+                  if (typeof order.storeLat === 'number' && typeof order.storeLng === 'number') coords.push({ latitude: order.storeLat, longitude: order.storeLng });
+                  if (typeof order.dropoffLat === 'number' && typeof order.dropoffLng === 'number') coords.push({ latitude: order.dropoffLat, longitude: order.dropoffLng });
+                  // @ts-ignore provider props are added on parent
+                  if (typeof (arguments as any)?.providerLat === 'number' && typeof (arguments as any)?.providerLng === 'number') {
+                    // skip; parent will pass separate markers
+                  }
+                  if (coords.length > 0) {
+                    mapRef.current?.fitToCoordinates(coords, { edgePadding: { top: 30, bottom: 30, left: 30, right: 30 }, animated: true });
+                  }
+                } catch {}
+              }}
+            >
+              {typeof order.storeLat === 'number' && typeof order.storeLng === 'number' && (
+                <Marker coordinate={{ latitude: order.storeLat, longitude: order.storeLng }} title="Store" />
+              )}
+              {typeof order.dropoffLat === 'number' && typeof order.dropoffLng === 'number' && (
+                <Marker coordinate={{ latitude: order.dropoffLat, longitude: order.dropoffLng }} title="Customer" pinColor="#10B981" />
+              )}
+              {typeof (providerLat as number) === 'number' && typeof (providerLng as number) === 'number' && (
+                <Marker coordinate={{ latitude: providerLat as number, longitude: providerLng as number }} title="You" pinColor="#3B82F6" opacity={0.7} />
+              )}
+              {routeStoreToCust
+                ? (<Polyline coordinates={routeStoreToCust} strokeColor="#10B981" strokeWidth={4} />)
+                : (typeof order.storeLat === 'number' && typeof order.storeLng === 'number' && typeof order.dropoffLat === 'number' && typeof order.dropoffLng === 'number'
+                    ? (<Polyline coordinates={[{ latitude: order.storeLat, longitude: order.storeLng }, { latitude: order.dropoffLat, longitude: order.dropoffLng }]} strokeColor="#10B981" strokeWidth={4} />)
+                    : null)}
+              {routeProvToStore
+                ? (<Polyline coordinates={routeProvToStore} strokeColor="#3B82F6" strokeWidth={3} lineDashPattern={[6,6]} />)
+                : (typeof (providerLat as number) === 'number' && typeof (providerLng as number) === 'number' && typeof order.storeLat === 'number' && typeof order.storeLng === 'number'
+                    ? (<Polyline coordinates={[{ latitude: providerLat as number, longitude: providerLng as number }, { latitude: order.storeLat, longitude: order.storeLng }]} strokeColor="#3B82F6" strokeWidth={3} lineDashPattern={[6, 6]} />)
+                    : null)}
+            </MapView>
+          </View>
+        )}
 
         {/* Order Details */}
         <View style={styles.orderDetails}>
@@ -132,10 +280,12 @@ const JobNotification: React.FC<JobNotificationProps> = ({
               </Text>
             </View>
             <View style={styles.metaItem}>
-              <Ionicons name="cash" size={16} color="#00D4AA" />
-              <Text style={styles.metaText}>
-                {formatCurrencySafe(order.budget_max)}
-              </Text>
+              <Ionicons name="cash" size={16} color="#F59E0B" />
+              <Text style={styles.metaText}>{formatCurrencySafe(order.budget_max)}</Text>
+            </View>
+            <View style={styles.metaItem}>
+              <Ionicons name="wallet" size={16} color="#10B981" />
+              <Text style={styles.metaText}>Net: {formatCurrencySafe(order.net ?? order.budget_max)}</Text>
             </View>
           </View>
         </View>
@@ -163,15 +313,17 @@ const JobNotification: React.FC<JobNotificationProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 0,
+    top: 0,
     left: 0,
     right: 0,
+    bottom: 0,
     zIndex: 1000,
+    backgroundColor: 'rgba(0,0,0,0.15)'
   },
   notification: {
     backgroundColor: '#FFFFFF',
-    marginHorizontal: 16,
-    marginBottom: 16,
+    marginHorizontal: 8,
+    marginVertical: 12,
     borderRadius: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },

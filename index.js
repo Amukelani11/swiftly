@@ -1,4 +1,6 @@
 import 'react-native-gesture-handler';
+// Ensure Reanimated is initialized before any other code that uses it
+import 'react-native-reanimated';
 import { registerRootComponent } from 'expo';
 import App from './App';
 

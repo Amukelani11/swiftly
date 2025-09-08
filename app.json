@@ -18,12 +18,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.swifty.app",
+      "deploymentTarget": "13.0",
       "config": {
         "googleMapsApiKey": "AIzaSyDUMMY_KEY_FOR_TESTING"
       },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to show nearby stores and provide delivery services.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs access to your location to provide real-time delivery tracking."
+        "NSLocationWhenInUseUsageDescription": "We use your location for in-app navigation and accurate routing.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We use your location for in-app navigation and accurate routing.",
+        "NSLocationAlwaysUsageDescription": "This app needs access to your location to provide turn-by-turn navigation and real-time delivery updates.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -32,6 +35,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.swifty.app",
+      "minSdkVersion": 23,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDUMMY_KEY_FOR_TESTING"
@@ -40,7 +44,9 @@
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
-        "FOREGROUND_SERVICE"
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "WAKE_LOCK"
       ]
     },
     "web": {
@@ -52,11 +58,8 @@
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
         }
-      ]
+      ],
+      "./expo-navigation-plugin.js"
     ]
   }
 }
-
-
-
-

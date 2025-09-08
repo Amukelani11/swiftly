@@ -143,6 +143,43 @@ export class GoogleMapsClient {
   }
 
   /**
+   * Get Place Details (to fetch geometry, name, address, etc.)
+   */
+  async getPlaceDetails(placeId: string, fields: string = 'geometry,name,formatted_address') {
+    const params: Record<string, any> = {
+      place_id: placeId,
+      fields,
+    };
+
+    return this.makeRequest('places-details', params);
+  }
+
+  /**
+   * Distance Matrix: get travel times/distances between one origin and many destinations
+   */
+  async getDistanceMatrix(
+    origin: { lat: number; lng: number },
+    destinations: Array<{ lat: number; lng: number }>,
+    options: { mode?: 'driving' | 'walking' | 'bicycling' | 'transit'; departure_time?: 'now' | number; units?: 'metric' | 'imperial' } = {}
+  ) {
+    if (!destinations || destinations.length === 0) return null;
+
+    const originStr = `${origin.lat},${origin.lng}`;
+    const destStr = destinations.map(d => `${d.lat},${d.lng}`).join('|');
+
+    const params: Record<string, any> = {
+      origins: originStr,
+      destinations: destStr,
+      mode: options.mode || 'driving',
+      units: options.units || 'metric',
+      departure_time: options.departure_time || 'now',
+      region: 'za',
+    };
+
+    return this.makeRequest('distance-matrix', params);
+  }
+
+  /**
    * Reverse geocode coordinates to get address
    */
   async reverseGeocode(lat: number, lng: number) {
@@ -151,6 +188,23 @@ export class GoogleMapsClient {
     };
 
     return this.makeRequest('reverse-geocode', params);
+  }
+
+  /**
+   * Directions: get route polyline between origin and destination
+   */
+  async getDirections(
+    origin: { lat: number; lng: number },
+    destination: { lat: number; lng: number },
+    options: { mode?: 'driving' | 'walking' | 'bicycling' | 'transit'; region?: string } = {}
+  ) {
+    const params: Record<string, any> = {
+      origin: `${origin.lat},${origin.lng}`,
+      destination: `${destination.lat},${destination.lng}`,
+      mode: options.mode || 'driving',
+    };
+    if (options.region) params.region = options.region;
+    return this.makeRequest('directions', params);
   }
 
   /**

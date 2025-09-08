@@ -141,17 +141,29 @@ export type RootStackParamList = {
   ProviderType: undefined;
   Auth: { selectedRole?: UserRole; providerType?: ProviderType; showSignIn?: boolean };
   ProviderOnboarding: { providerType: ProviderType };
-  CustomerDashboard: undefined;
+  CustomerDashboard: { scrollToSection?: string } | undefined;
   CmsDashboardEditor: undefined;
   ProviderDashboard: undefined;
+  AllStores: {
+    stores: any[];
+    promotions?: any[];
+    categories?: any[];
+    selectedFilters?: string[];
+    activeCategory?: any;
+    searchQuery?: string;
+    sourceSection?: string;
+  };
   Wallet: undefined;
   Profile: undefined;
   AdminDashboard: undefined;
   TaskDetails: { taskId: string };
-  OrderTracking: { taskId: string };
+  OrderTracking: { taskId: string; task?: any };
   CreateTask: undefined;
   CreateShoppingList: { selectedStore?: any; selectedCategory?: any; promotion?: any };
+  StoreSelection: { items: any[]; selectedStore?: any };
+  JobFeed: undefined;
   Settings: undefined;
+  ProviderTrip: { requestId: string; storeLat?: number; storeLng?: number; dropoffLat?: number; dropoffLng?: number; title?: string; description?: string };
 };
 
 export interface ShoppingList {
@@ -206,5 +218,3 @@ export interface PaginatedResponse<T> {
   limit: number;
   hasMore: boolean;
 }
-
-

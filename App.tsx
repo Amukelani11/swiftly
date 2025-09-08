@@ -11,7 +11,12 @@ import AuthScreen from './src/screens/AuthScreen';
 import ProviderOnboardingScreen from './src/screens/ProviderOnboardingScreen';
 import CustomerDashboard from './src/screens/CustomerDashboard';
 import AllStores from './src/screens/AllStores';
+import CreateShoppingList from './src/screens/customer/CreateShoppingList';
+import StoreSelection from './src/screens/customer/StoreSelection';
+import DeliveryDetails from './src/screens/customer/DeliveryDetails';
+import OrderTracking from './src/screens/customer/OrderTracking';
 import ProviderDashboard from './src/screens/ProviderDashboard';
+import ProviderTrip from './src/screens/provider/ProviderTrip';
 import Profile from './src/screens/Profile';
 import Wallet from './src/screens/Wallet';
 import AdminDashboard from './src/screens/AdminDashboard';
@@ -23,6 +28,7 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 
 // Import types
 import { RootStackParamList } from './src/types';
+import { ensureDeviceTokenRegistered } from './src/lib/pushNotifications';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -34,6 +40,8 @@ function AppContent() {
   useEffect(() => {
     if (!loading && navigationRef.current) {
       if (session) {
+        // Register device token for push notifications when user is authenticated
+        ensureDeviceTokenRegistered().catch(() => {});
         // User is authenticated - check if they need onboarding
         console.log('Session user metadata:', session?.user?.user_metadata);
         const userRole = session?.user?.user_metadata?.role || 'customer';
@@ -186,23 +194,7 @@ function AppContent() {
     };
   }, []);
 
-  // Try dynamic import of CustomerDashboard to capture module-level syntax/load errors
-  useEffect(() => {
-    (async () => {
-      try {
-        // dynamic import so Metro will attempt to load that module and we can catch errors with stack/location
-        await import('./src/screens/CustomerDashboard');
-        console.log('CustomerDashboard module imported successfully');
-      } catch (err) {
-        console.error('Dynamic import error for CustomerDashboard:', err);
-        try {
-          Alert.alert('Module Load Error', String(err).slice(0, 1000));
-        } catch (e) {
-          console.error('Failed to show alert for import error', e);
-        }
-      }
-    })();
-  }, []);
+  // Removed dynamic import experiment to avoid Metro unknown module errors in production
 
   if (loading) {
     return <LoadingScreen />;
@@ -250,7 +242,12 @@ function AppContent() {
           // User is authenticated - show dashboard screens
           <>
             <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} />
+            <Stack.Screen name="CreateShoppingList" component={CreateShoppingList} />
+            <Stack.Screen name="StoreSelection" component={StoreSelection} />
+            <Stack.Screen name="DeliveryDetails" component={DeliveryDetails} />
+            <Stack.Screen name="OrderTracking" component={OrderTracking} />
             <Stack.Screen name="ProviderDashboard" component={ProviderDashboard} />
+            <Stack.Screen name="ProviderTrip" component={ProviderTrip} />
             <Stack.Screen name="Profile" component={Profile} />
             <Stack.Screen name="AllStores" component={AllStores} />
             <Stack.Screen name="Wallet" component={Wallet} />
@@ -262,16 +259,21 @@ function AppContent() {
                    </>
                  ) : (
                    // User is not authenticated - show auth screens
-                   <>
-                     <Stack.Screen name="Welcome" component={WelcomeScreen} />
-                     <Stack.Screen name="ProviderType" component={ProviderTypeScreen} />
-                     <Stack.Screen name="Auth" component={AuthScreen} />
-                     <Stack.Screen name="ProviderOnboarding" component={ProviderOnboardingScreen} />
-                     <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} />
-                     <Stack.Screen name="ProviderDashboard" component={ProviderDashboard} />
-                     <Stack.Screen name="Profile" component={Profile} />
-                     <Stack.Screen name="AllStores" component={AllStores} />
-                     <Stack.Screen name="Wallet" component={Wallet} />
+                 <>
+                   <Stack.Screen name="Welcome" component={WelcomeScreen} />
+                   <Stack.Screen name="ProviderType" component={ProviderTypeScreen} />
+                   <Stack.Screen name="Auth" component={AuthScreen} />
+                   <Stack.Screen name="ProviderOnboarding" component={ProviderOnboardingScreen} />
+                   <Stack.Screen name="CreateShoppingList" component={CreateShoppingList} />
+                   <Stack.Screen name="StoreSelection" component={StoreSelection} />
+                   <Stack.Screen name="DeliveryDetails" component={DeliveryDetails} />
+                   <Stack.Screen name="OrderTracking" component={OrderTracking} />
+                   <Stack.Screen name="CustomerDashboard" component={CustomerDashboard} />
+                  <Stack.Screen name="ProviderDashboard" component={ProviderDashboard} />
+                  <Stack.Screen name="ProviderTrip" component={ProviderTrip} />
+                   <Stack.Screen name="Profile" component={Profile} />
+                   <Stack.Screen name="AllStores" component={AllStores} />
+                   <Stack.Screen name="Wallet" component={Wallet} />
                      <Stack.Screen name="JobFeed" component={JobFeed} />
                    </>
                  )}
@@ -287,4 +289,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-

@@ -14,6 +14,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { googleMaps } from '../lib/googleMaps';
 
 const { width, height } = Dimensions.get('window');
+const DEFAULT_REGION = { latitude: -26.2041, longitude: 28.0473 }; // Johannesburg fallback
 
 interface Store {
   id: string;
@@ -217,6 +218,9 @@ const LiveMap: React.FC<LiveMapProps> = ({
     return null;
   }
 
+  const hasValidLocation = Number.isFinite(providerLocation?.latitude) && Number.isFinite(providerLocation?.longitude) && !(providerLocation.latitude === 0 && providerLocation.longitude === 0);
+  const center = hasValidLocation ? providerLocation : DEFAULT_REGION;
+
   return (
     <View style={styles.container}>
       {/* Real Google Maps Display */}
@@ -225,8 +229,8 @@ const LiveMap: React.FC<LiveMapProps> = ({
           style={styles.map}
           provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
           region={{
-            latitude: providerLocation.latitude,
-            longitude: providerLocation.longitude,
+            latitude: center.latitude,
+            longitude: center.longitude,
             latitudeDelta: 0.01,
             longitudeDelta: 0.01,
           }}
@@ -237,15 +241,17 @@ const LiveMap: React.FC<LiveMapProps> = ({
           mapType="standard"
         >
           {/* Provider Location Marker */}
-          <Marker
-            coordinate={{
-              latitude: providerLocation.latitude,
-              longitude: providerLocation.longitude,
-            }}
-            title="Your Location"
-            description="Current provider location"
-            pinColor="#00D4AA"
-          />
+          {hasValidLocation && (
+            <Marker
+              coordinate={{
+                latitude: providerLocation.latitude,
+                longitude: providerLocation.longitude,
+              }}
+              title="Your Location"
+              description="Current provider location"
+              pinColor="#00D4AA"
+            />
+          )}
 
           {/* Store Markers */}
           {showStores && stores.map((store, index) => (
@@ -570,7 +576,6 @@ const styles = StyleSheet.create({
 });
 
 export default LiveMap;
-
 
 
 

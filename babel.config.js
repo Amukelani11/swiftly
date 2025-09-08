@@ -3,12 +3,12 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      ['react-native-worklets/plugin'],
+      // Reanimated v3 requires its plugin to be last
+      'react-native-reanimated/plugin',
     ],
-    // Explicitly disable any reanimated plugins that might be included
     env: {
       production: {
-        plugins: ['react-native-worklets/plugin']
+        plugins: ['react-native-reanimated/plugin']
       }
     }
   };

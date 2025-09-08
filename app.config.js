@@ -17,21 +17,37 @@ try {
 }
 
 export default ({ config: expoConfig }) => {
+  const API_KEY = process.env.GOOGLE_MAPS_API_KEY || envVars.GOOGLE_MAPS_API_KEY;
+  if (!API_KEY) {
+    console.warn("\n[config] GOOGLE_MAPS_API_KEY is not set. Maps may render blank tiles.");
+  }
   return {
     ...expoConfig,
     ios: {
       ...expoConfig.ios,
+      deploymentTarget: '13.0',
+      infoPlist: {
+        ...(expoConfig.ios?.infoPlist || {}),
+        NSLocationWhenInUseUsageDescription: 'We use your location for in-app navigation and accurate routing.',
+        NSLocationAlwaysAndWhenInUseUsageDescription: 'We use your location for in-app navigation and accurate routing.',
+      },
       config: {
         ...expoConfig.ios?.config,
-        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || 'AIzaSyDUMMY_KEY_FOR_TESTING',
+        ...(API_KEY ? { googleMapsApiKey: API_KEY } : {}),
       },
     },
     android: {
       ...expoConfig.android,
+      minSdkVersion: 23,
+      permissions: Array.from(new Set([
+        ...(expoConfig.android?.permissions || []),
+        'ACCESS_FINE_LOCATION',
+        'ACCESS_COARSE_LOCATION',
+      ])),
       config: {
         ...expoConfig.android?.config,
         googleMaps: {
-          apiKey: process.env.GOOGLE_MAPS_API_KEY || 'AIzaSyDUMMY_KEY_FOR_TESTING',
+          ...(API_KEY ? { apiKey: API_KEY } : {}),
         },
       },
     },
@@ -44,10 +60,10 @@ export default ({ config: expoConfig }) => {
     extra: {
       REACT_APP_SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL || envVars.REACT_APP_SUPABASE_URL,
       REACT_APP_SUPABASE_ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY || envVars.REACT_APP_SUPABASE_ANON_KEY,
-      GOOGLE_MAPS_API_KEY: process.env.GOOGLE_MAPS_API_KEY || 'AIzaSyDUMMY_KEY_FOR_TESTING',
+      GOOGLE_MAPS_API_KEY: API_KEY,
+      eas: {
+        projectId: process.env.EAS_PROJECT_ID || envVars.EAS_PROJECT_ID || '5ff4974f-bcab-4d4d-998b-e1bb9a31b107',
+      },
     },
   };
 };
-
-
-

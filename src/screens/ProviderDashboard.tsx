@@ -27,6 +27,7 @@ import JobNotification from '../components/JobNotification';
 import SmoothTransitionButton from '../components/SmoothTransitionButton';
 import { supabase } from '../lib/supabase';
 import { formatCurrencySafe } from '../utils/format';
+import { Colors } from '../styles/theme';
 
 type ProviderDashboardNavigationProp = StackNavigationProp<RootStackParamList, 'ProviderDashboard'>;
 
@@ -600,6 +601,8 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
   const [declaredFloat, setDeclaredFloat] = useState(0);
   const [suggestedFloat, setSuggestedFloat] = useState(0);
   const [isOnline, setIsOnline] = useState(false);
+  const onlineRef = useRef<boolean>(false);
+  useEffect(() => { onlineRef.current = isOnline; }, [isOnline]);
 
   // Animation states
   const [showMap, setShowMap] = useState(false);
@@ -609,6 +612,7 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
 
   const locationWatcherRef = useRef<any>(null);
   const realtimeSubscriptionRef = useRef<any>(null);
+  const requestSubscriptionRef = useRef<any>(null);
   const panResponder = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onPanResponderGrant: () => {},
@@ -1036,10 +1040,36 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
           {
             text: 'Accept',
             onPress: async () => {
-              // In a real app, this would update the task status to 'accepted'
-              Alert.alert('Order Accepted!', 'Navigate to the store to pick up the items.');
-              // Refresh data to update the UI
-              await fetchDashboardData(false);
+              try {
+                const { data, error } = await supabase.functions.invoke('accept-request', {
+                  body: { requestId: order.id },
+                });
+                if (error) {
+                  console.error('accept-request failed', error);
+                  Alert.alert('Could not accept', 'Please try again.');
+                  return;
+                }
+                if (data?.success) {
+                  setAvailableOrders((prev) => prev.filter((o) => o.id !== order.id));
+                  try {
+                    navigation.navigate('ProviderTrip' as never, {
+                      requestId: data?.request?.id,
+                      storeLat: data?.request?.store_lat,
+                      storeLng: data?.request?.store_lng,
+                      dropoffLat: data?.request?.dropoff_lat,
+                      dropoffLng: data?.request?.dropoff_lng,
+                      title: data?.request?.store_name || 'Shopping Request',
+                      description: data?.request?.dropoff_address,
+                    } as never);
+                  } catch {}
+                } else {
+                  const reason = data?.reason || 'Already accepted by someone else';
+                  Alert.alert('Not Available', reason);
+                }
+              } catch (e) {
+                console.error('accept-request error', e);
+                Alert.alert('Error', 'Failed to accept. Please try again.');
+              }
             }
           }
         ]
@@ -1048,7 +1078,7 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
       console.error('Error accepting order:', error);
       Alert.alert('Error', 'Failed to accept order. Please try again.');
     }
-  }, [fetchDashboardData]);
+  }, []);
 
   const calculateDistance = useCallback((lat1: number, lng1: number, lat2: number, lng2: number): number => {
     const R = 6371; // Earth's radius in km
@@ -1215,17 +1245,55 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
         return;
       }
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          declared_float: floatAmount,
-          float_last_updated: new Date().toISOString(),
-          is_online: true,
-        })
-        .eq('id', user.id);
+      // 1) Persist declared float to profile (optional, existing behavior)
+      try {
+        const { error: profErr } = await supabase
+          .from('profiles')
+          .update({
+            declared_float: floatAmount,
+            float_last_updated: new Date().toISOString(),
+          })
+          .eq('id', user.id);
+        if (profErr) console.warn('Non-fatal: profile float update failed', profErr);
+      } catch (_) {}
 
-      if (error) {
-        console.error('Error updating float:', error);
+      // 2) Upsert provider online presence to provider_status for realtime + notify
+      try {
+        // Try to grab a current location once when going online (best effort)
+        let lat: number | undefined;
+        let lng: number | undefined;
+        try {
+          const perm = await Location.requestForegroundPermissionsAsync();
+          if (perm.status === 'granted') {
+            const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+            lat = pos.coords.latitude; lng = pos.coords.longitude;
+            setProviderLocation({ latitude: lat, longitude: lng });
+          }
+        } catch (e) {
+          console.warn('Best-effort geolocation failed on go-online', e);
+        }
+
+        const { error: statusErr } = await supabase
+          .from('provider_status')
+          .upsert({
+            user_id: user.id,
+            online: true,
+            lat: typeof lat === 'number' ? lat : null,
+            lng: typeof lng === 'number' ? lng : null,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id' });
+        if (statusErr) {
+          console.error('Error upserting provider_status:', statusErr);
+          Alert.alert('Error', 'Failed to go online. Please try again.');
+          return;
+        } else {
+          console.log('[presence] provider_status upserted online=true');
+        }
+        // Immediately reflect online state to avoid races in realtime handler
+        setIsOnline(true);
+        onlineRef.current = true;
+      } catch (e) {
+        console.error('provider_status upsert error', e);
         Alert.alert('Error', 'Failed to go online. Please try again.');
         return;
       }
@@ -1235,6 +1303,57 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
 
       // Start the smooth transition
       handleGoOnlineTransition();
+
+      // Proactively fetch any recent pending requests and surface a popup
+      try {
+        const { data: pending } = await supabase
+          .from('shopping_requests')
+          .select('*')
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (pending && pending.length > 0) {
+          const plat = providerLocation?.latitude;
+          const plng = providerLocation?.longitude;
+          let chosen: any = pending[0];
+          if (
+            typeof plat === 'number' && typeof plng === 'number'
+          ) {
+            // prefer closest request that has coordinates
+            const withDist = pending
+              .filter((r: any) => typeof r.dropoff_lat === 'number' && typeof r.dropoff_lng === 'number')
+              .map((r: any) => {
+                const toRad = (d: number) => d * Math.PI / 180;
+                const R = 6371;
+                const dLat = toRad(r.dropoff_lat - plat);
+                const dLng = toRad(r.dropoff_lng - plng);
+                const a = Math.sin(dLat/2)**2 + Math.cos(toRad(plat)) * Math.cos(toRad(r.dropoff_lat)) * Math.sin(dLng/2)**2;
+                const distKm = 2 * R * Math.asin(Math.sqrt(a));
+                return { r, distKm };
+              })
+              .sort((a: any, b: any) => a.distKm - b.distKm);
+            if (withDist.length > 0) {
+              chosen = withDist[0].r;
+            }
+          }
+          const orderLike: any = {
+            id: chosen.id,
+            title: chosen.store_name || 'Shopping Request',
+            description: chosen.dropoff_address || 'Pickup and delivery',
+            budget_max: chosen.subtotal_fees || 0,
+            city: '',
+            province: '',
+            latitude: chosen.dropoff_lat,
+            longitude: chosen.dropoff_lng,
+            created_at: chosen.created_at,
+          };
+          setCurrentNotificationOrder(orderLike);
+          setShowJobNotification(true);
+          console.log('Popup surfaced from recent pending requests');
+        }
+      } catch (e) {
+        console.warn('Pending request preload failed', e);
+      }
 
     } catch (error) {
       console.error('Error going online:', error);
@@ -1252,10 +1371,11 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
+          // Best-effort set offline in provider_status
           await supabase
-            .from('profiles')
-            .update({ is_online: false })
-            .eq('id', user.id);
+            .from('provider_status')
+            .upsert({ user_id: user.id, online: false, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+          console.log('[presence] provider_status upserted online=false');
         }
       } catch (e) {
         // non-fatal
@@ -1338,19 +1458,20 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
       // Update location in database
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            latitude: locationData.latitude,
-            longitude: locationData.longitude,
+        const { error: statusErr } = await supabase
+          .from('provider_status')
+          .upsert({
+            user_id: user.id,
+            online: true,
+            lat: locationData.latitude,
+            lng: locationData.longitude,
             updated_at: new Date().toISOString()
-          })
-          .eq('id', user.id);
+          }, { onConflict: 'user_id' });
 
-        if (error) {
-          console.error('Error updating provider location in database:', error);
+        if (statusErr) {
+          console.error('Error updating provider_status location:', statusErr);
         } else {
-          console.log(`Provider location updated in database${continuous ? ' (continuous)' : ''}:`, locationData);
+          console.log(`provider_status updated${continuous ? ' (continuous)' : ''}:`, locationData);
         }
       }
 
@@ -1393,19 +1514,21 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
           // Update database in real-time
           const { data: { user } } = await supabase.auth.getUser();
           if (user) {
-            const { error } = await supabase
-              .from('profiles')
-              .update({
-                latitude: locationData.latitude,
-                longitude: locationData.longitude,
-                updated_at: new Date().toISOString()
-              })
-              .eq('id', user.id);
+            // Update provider_status for realtime/notify
+            const { error: statusErr } = await supabase
+              .from('provider_status')
+              .upsert({
+                user_id: user.id,
+                online: true,
+                lat: locationData.latitude,
+                lng: locationData.longitude,
+                updated_at: new Date().toISOString(),
+              }, { onConflict: 'user_id' });
 
-            if (error) {
-              console.error('Error updating realtime location:', error);
+            if (statusErr) {
+              console.error('Error updating provider_status realtime location:', statusErr);
             } else {
-              console.log('Realtime location updated:', locationData);
+              console.log('Realtime provider_status updated:', locationData);
             }
           }
         }
@@ -1425,6 +1548,111 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
       console.log('Realtime location tracking stopped');
     }
   }, []);
+
+  // Subscribe to own provider_status row for realtime presence updates
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const channel = supabase
+          .channel('provider_status_self')
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'provider_status',
+            filter: `user_id=eq.${user.id}`,
+          }, (payload: any) => {
+            const row = payload?.new || payload?.record || payload?.old;
+            if (row && typeof row.online === 'boolean') {
+              setIsOnline(row.online);
+            }
+          })
+          .on('postgres_changes', {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'shopping_requests',
+          }, (payload: any) => {
+            try {
+              console.log('[realtime] new shopping_request insert received');
+              const req = payload?.new;
+              if (!req) return;
+              if (req.confirmed !== true) {
+                console.log('[realtime] request not confirmed; ignoring');
+                return;
+              }
+              // Only pop while online (use ref to avoid stale closure)
+              if (!onlineRef.current) { console.log('[realtime] isOnline=false (ref); skipping'); return; }
+              // Basic proximity filter if we have a provider location
+              const plat = providerLocation?.latitude;
+              const plng = providerLocation?.longitude;
+              if (typeof plat === 'number' && typeof plng === 'number' && typeof req.dropoff_lat === 'number' && typeof req.dropoff_lng === 'number') {
+                const toRad = (d: number) => d * Math.PI / 180;
+                const R = 6371;
+                const dLat = toRad(req.dropoff_lat - plat);
+                const dLng = toRad(req.dropoff_lng - plng);
+                const a = Math.sin(dLat/2)**2 + Math.cos(toRad(plat)) * Math.cos(toRad(req.dropoff_lat)) * Math.sin(dLng/2)**2;
+                const distKm = 2 * R * Math.asin(Math.sqrt(a));
+                console.log('[realtime] distanceKm', Math.round(distKm * 10) / 10);
+                // Do not early return during debug; still show popup even if out of radius
+              }
+              // Map to Task-like shape used by JobNotification
+              const orderLike: any = {
+                id: req.id,
+                title: req.store_name || 'Shopping Request',
+                description: req.dropoff_address || 'Pickup and delivery',
+                budget_max: req.subtotal_fees || 0,
+                city: '',
+                province: '',
+                latitude: req.dropoff_lat,
+                longitude: req.dropoff_lng,
+                store_lat: req.store_lat,
+                store_lng: req.store_lng,
+                service_fee: (req as any)?.service_fee ?? 0,
+                tip: (req as any)?.tip ?? 0,
+                created_at: req.created_at,
+              };
+              // Shopper income = commitment fee + pick & pack fee + tips
+              // commitment fee = subtotal_fees - service_fee - pick_pack_fee
+              const subtotal = (req as any)?.subtotal_fees || 0;
+              const serviceFee = (req as any)?.service_fee || 0;
+              const pickPack = (req as any)?.pick_pack_fee || 0;
+              const tips = (req as any)?.tip || 0;
+              const commitment = Math.max(0, subtotal - serviceFee - pickPack);
+              (orderLike as any).net = Math.max(0, commitment + pickPack + tips);
+              setCurrentNotificationOrder(orderLike);
+              setShowJobNotification(true);
+              // Subscribe to updates for this request to auto-dismiss when accepted/cancelled
+              try { requestSubscriptionRef.current?.unsubscribe?.(); } catch {}
+              try {
+                const reqCh = supabase
+                  .channel(`req_${orderLike.id}`)
+                  .on('postgres_changes', {
+                    event: '*', schema: 'public', table: 'shopping_requests', filter: `id=eq.${orderLike.id}`
+                  }, (pl: any) => {
+                    const r = pl?.new || pl?.record;
+                    if (r && r.status && r.status !== 'pending') {
+                      setShowJobNotification(false);
+                      setCurrentNotificationOrder(null);
+                      try { reqCh.unsubscribe(); } catch {}
+                    }
+                  })
+                  .subscribe();
+                requestSubscriptionRef.current = reqCh;
+              } catch {}
+              console.log('[popup] set visible for request', orderLike.id);
+            } catch (e) {
+              console.warn('Failed to handle new request payload', e);
+            }
+          })
+          .subscribe();
+        realtimeSubscriptionRef.current = channel;
+        console.log('[realtime] subscribed to provider_status + shopping_requests');
+      } catch (e) {
+        console.warn('provider_status subscription failed', e);
+      }
+    })();
+  }, [isOnline, providerLocation?.latitude, providerLocation?.longitude]);
 
   // Trigger online mode animation when going online
   useEffect(() => {
@@ -1465,15 +1693,45 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
     };
   }, []);
 
-  const handleAcceptNotificationOrder = useCallback((orderId: string) => {
-    setShowJobNotification(false);
-    Alert.alert('Order Accepted!', 'Navigate to the store to pick up the items.');
-    // TODO: update order status in backend
+  const handleAcceptNotificationOrder = useCallback(async (orderId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('accept-request', {
+        body: { requestId: orderId },
+      });
+      if (error) {
+        console.error('accept-request failed', error);
+        Alert.alert('Could not accept', 'Please try again.');
+        return;
+      }
+      if (data?.success) {
+        setShowJobNotification(false);
+        setCurrentNotificationOrder(null);
+        setAvailableOrders((prev) => prev.filter((o) => o.id !== orderId));
+        try {
+          navigation.navigate('ProviderTrip' as never, {
+            requestId: data?.request?.id,
+            storeLat: data?.request?.store_lat,
+            storeLng: data?.request?.store_lng,
+            dropoffLat: data?.request?.dropoff_lat,
+            dropoffLng: data?.request?.dropoff_lng,
+            title: data?.request?.store_name || 'Shopping Request',
+            description: data?.request?.dropoff_address,
+          } as never);
+        } catch {}
+      } else {
+        const reason = data?.reason || 'Already accepted by someone else';
+        Alert.alert('Not Available', reason);
+      }
+    } catch (e) {
+      console.error('accept-request error', e);
+      Alert.alert('Error', 'Failed to accept. Please try again.');
+    }
   }, []);
 
   const handleDismissNotification = useCallback(() => {
     setShowJobNotification(false);
     setCurrentNotificationOrder(null);
+    try { requestSubscriptionRef.current?.unsubscribe?.(); } catch {}
   }, []);
 
   const handleAcceptTask = useCallback((task: Task) => {
@@ -1581,7 +1839,7 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
       )}
       {/* Main gradient background */}
       <LinearGradient
-        colors={isOnline ? [Colors.white, Colors.gray200] : ["rgba(255,255,255,0.95)", "rgba(248,250,252,0.95)"]}
+        colors={isOnline ? [Colors.white, Colors.gray[200]] : ["rgba(255,255,255,0.95)", "rgba(248,250,252,0.95)"]}
         style={styles.gradient}
         pointerEvents="none"
         start={{ x: 0, y: 0 }}
@@ -1836,26 +2094,33 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
       />
 
       {/* Job Notification */} 
-      <JobNotification
-        visible={showJobNotification}
-        order={{
-          id: currentNotificationOrder?.id || '',
-          title: currentNotificationOrder?.title || '',
-          description: currentNotificationOrder?.description || '',
-          budget_max: currentNotificationOrder?.budget_max || 0,
-          city: (currentNotificationOrder as any)?.city || '',
-          distance: currentNotificationOrder
-            ? calculateDistance(
-                -26.2041,
-                28.0473,
-                (currentNotificationOrder as any)?.latitude ?? -26.2041,
-                (currentNotificationOrder as any)?.longitude ?? 28.0473
-              )
-            : 0,
-        }}
-        onAccept={handleAcceptNotificationOrder}
-        onDismiss={handleDismissNotification}
-      />
+       <JobNotification
+         visible={showJobNotification}
+         order={{
+           id: currentNotificationOrder?.id || '',
+           title: currentNotificationOrder?.title || '',
+           description: currentNotificationOrder?.description || '',
+           budget_max: currentNotificationOrder?.budget_max || 0,
+           city: (currentNotificationOrder as any)?.city || '',
+           distance: (providerLocation && (currentNotificationOrder as any))
+             ? calculateDistance(
+                 providerLocation.latitude,
+                 providerLocation.longitude,
+                 ((currentNotificationOrder as any)?.store_lat ?? (currentNotificationOrder as any)?.latitude) || providerLocation.latitude,
+                 ((currentNotificationOrder as any)?.store_lng ?? (currentNotificationOrder as any)?.longitude) || providerLocation.longitude
+               )
+             : 0,
+           dropoffLat: (currentNotificationOrder as any)?.latitude,
+           dropoffLng: (currentNotificationOrder as any)?.longitude,
+           storeLat: (currentNotificationOrder as any)?.store_lat,
+           storeLng: (currentNotificationOrder as any)?.store_lng,
+          net: (currentNotificationOrder as any)?.net ?? Math.max(0, (((currentNotificationOrder as any)?.budget_max || 0) - (((currentNotificationOrder as any)?.service_fee) || 0)) + (((currentNotificationOrder as any)?.tip) || 0)),
+         }}
+         providerLat={providerLocation?.latitude}
+         providerLng={providerLocation?.longitude}
+         onAccept={handleAcceptNotificationOrder}
+         onDismiss={handleDismissNotification}
+       />
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} userType="provider" onTabPress={handleTabPress} />

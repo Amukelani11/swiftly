@@ -1,14 +1,221 @@
-﻿const updateProviderLocation = useCallback(() => {
-    // In a real app, this would use expo-location to get actual GPS
-    // For now, we'll simulate a slight movement around Johannesburg CBD
-    const baseLat = -26.2041;
-    const baseLng = 28.0473;
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                style={styles.categoriesScroll}
+                contentContainerStyle={styles.categoriesContent}
+              >
+                {data.categories.slice(0, 8).map(renderCategoryPill)}
+              </ScrollView>
+            </View>
+          )}
+        
+        {/* CMS Driven Sections */}
+        {sections.map(renderSection)}
+        
+          {/* Bottom Padding for tab bar */}
+        <View style={styles.bottomPadding} />
+        </ScrollView>
+      </SafeAreaView>
 
-    // Add small random movement (Â±0.001 degrees â‰ˆ Â±100m)
-    const newLocation = {
-      latitude: baseLat + (Math.random() - 0.5) * 0.002,
-      longitude: baseLng + (Math.random() - 0.5) * 0.002,
-    };
+      {/* Address Input Modal */}
+      <Modal
+        visible={showAddressModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowAddressModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalContainer}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Add Delivery Address</Text>
+                <TouchableOpacity 
+                  onPress={() => setShowAddressModal(false)}
+                  style={styles.modalCloseButton}
+                >
+                  <Ionicons name="close" size={24} color="#8E8E93" />
+                </TouchableOpacity>
+              </View>
+              
+              <Text style={styles.modalSubtitle}>
+                Search and select your delivery address
+              </Text>
+              
+              <View style={styles.placesContainer}>
+                {!addressSaved ? (
+                  <>
+                    <View style={styles.autocompleteInputContainer}>
+                      <Ionicons name="search" size={18} color="#0097b2" />
+                      <TextInput
+                        style={styles.autocompleteInput}
+                        placeholder="Search for your address..."
+                        value={addressInput}
+                        onChangeText={setAddressInput}
+                        placeholderTextColor="#8E8E93"
+                        autoFocus
+                        editable={!savingAddress}
+                      />
+                      {savingAddress && (
+                        <ActivityIndicator size="small" color="#0097b2" />
+                      )}
+                    </View>
 
-    setProviderLocation(newLocation);
+                    {loadingPlaces && (
+                      <View style={styles.placesLoadingContainer}>
+                        <ActivityIndicator size="small" color="#0097b2" />
+                        <Text style={styles.placesLoadingText}>Searching places...</Text>
+                      </View>
+                    )}
 
+                    {placeSuggestions.length > 0 && !savingAddress && (
+                      <View style={styles.autocompleteList}>
+                        {placeSuggestions.map((p) => (
+                          <TouchableOpacity
+                            key={p.place_id}
+                            style={styles.autocompleteRow}
+                            onPress={() => handleSelectSuggestion(p)}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="location-outline" size={16} color="#8E8E93" />
+                            <Text style={styles.autocompleteDescription}>{p.description}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <View style={styles.successContainer}>
+                    <View style={styles.successIcon}>
+                      <Ionicons name="checkmark" size={32} color="#0097b2" />
+                    </View>
+                    <Text style={styles.successTitle}>Address Added!</Text>
+                    <Text style={styles.successText}>
+                      Your delivery address has been saved successfully
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              <TouchableOpacity style={styles.cancelOnlyButton} onPress={() => setShowAddressModal(false)}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
+    </ViewShot>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  
+  // Loading Styles
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  loadingContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+
+  // Modern Header Styles
+  headerContainer: {
+    backgroundColor: '#fff',
+    paddingTop: 8,
+    paddingBottom: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E5E5EA',
+  },
+  topHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  locationSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  locationIconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E0F7FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  locationInfo: {
+    flex: 1,
+  },
+  deliveryToText: {
+    fontSize: 12,
+    color: '#8E8E93',
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  currentLocation: {
+    fontSize: 16,
+    color: '#1A1A1A',
+    fontWeight: '600',
+    marginRight: 4,
+  },
+  topActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  actionButton: {
+    padding: 4,
+  },
+  actionIconWrapper: {
+    position: 'relative',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F8F9FA',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1A1A1A',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  notificationIndicator: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF3B30',
+    borderWidth: 1.5,
+    borderColor: '#fff',

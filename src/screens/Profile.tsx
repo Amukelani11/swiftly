@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
 import { supabase } from '../lib/supabase';
-import { formatCurrencySafe } from '../utils/format';
 import { Colors } from '../styles/theme';
 
 type ProfileNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;
@@ -54,6 +53,7 @@ const Profile: React.FC<Props> = ({ navigation }) => {
       
       if (!user) {
         Alert.alert('Error', 'User not authenticated');
+        setProfile(null);
         return;
       }
 
@@ -65,33 +65,17 @@ const Profile: React.FC<Props> = ({ navigation }) => {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        // Use mock data as fallback
-        setMockProfile();
+        setProfile(null);
         return;
       }
 
       setProfile(profileData);
     } catch (error) {
       console.error('Error fetching profile:', error);
-      setMockProfile();
+      setProfile(null);
     } finally {
       setLoading(false);
     }
-  };
-
-  const setMockProfile = () => {
-    setProfile({
-      id: 'mock-user',
-      full_name: 'John Doe',
-      email: 'john.doe@example.com',
-      phone: '+27 82 123 4567',
-      rating: 4.8,
-      total_earnings: 4850.25,
-      total_reviews: 127,
-      is_online: false,
-      declared_float: 500,
-      created_at: new Date().toISOString(),
-    });
   };
 
   const handleSignOut = async () => {
@@ -168,13 +152,6 @@ const Profile: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={['#FFFFFF', '#F8FAFC']}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-      />
-
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
@@ -182,11 +159,11 @@ const Profile: React.FC<Props> = ({ navigation }) => {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Ionicons name="arrow-back" size={24} color="#333333" />
+            <Ionicons name="arrow-back" size={24} color={Colors.text.primary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Profile</Text>
+          <Text style={styles.headerTitle}>My Profile</Text>
           <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
-            <Ionicons name="create-outline" size={24} color={Colors.primary} />
+            <Ionicons name="create-outline" size={24} color={Colors.text.primary} />
           </TouchableOpacity>
         </View>
 
@@ -196,12 +173,6 @@ const Profile: React.FC<Props> = ({ navigation }) => {
             <View style={styles.avatar}>
               <Ionicons name="person" size={48} color={Colors.white} />
             </View>
-            <View style={styles.onlineIndicator}>
-              <View style={[
-                styles.onlineDot,
-                { backgroundColor: profile.is_online ? Colors.primary : Colors.textSecondary }
-              ]} />
-            </View>
           </View>
 
           <Text style={styles.name}>{profile.full_name}</Text>
@@ -210,65 +181,58 @@ const Profile: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.phone}>{profile.phone}</Text>
           )}
 
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{profile.rating.toFixed(1)}</Text>
-              <Text style={styles.statLabel}>Rating</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{profile.total_reviews}</Text>
-              <Text style={styles.statLabel}>Reviews</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statValue}>{formatCurrencySafe(profile.total_earnings)}</Text>
-              <Text style={styles.statLabel}>Earnings</Text>
-            </View>
-          </View>
+          {/* Removed mock stats to avoid fake data */}
         </View>
 
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.actionsGrid}>
-            <TouchableOpacity style={styles.actionCard} onPress={handleBankDetails}>
+            <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('Wallet')}>
               <LinearGradient
-                colors={['#00D4AA', '#00B894']}
+                colors={[Colors.primary, Colors.primary]}
                 style={styles.actionGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
               >
-                <Ionicons name="card" size={24} color="#FFFFFF" />
-                <Text style={styles.actionText}>Bank Details</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.actionCard}>
-              <LinearGradient
-                colors={['#667EEA', '#764BA2']}
-                style={styles.actionGradient}
-              >
-                <Ionicons name="wallet" size={24} color="#FFFFFF" />
+                <Ionicons name="wallet" size={28} color={Colors.white} />
                 <Text style={styles.actionText}>Wallet</Text>
               </LinearGradient>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionCard}>
+            <TouchableOpacity style={styles.actionCard} onPress={() => navigation.navigate('AllStores' as never)}>
               <LinearGradient
-                colors={['#F093FB', '#F5576C']}
+                colors={[Colors.success, Colors.success]}
                 style={styles.actionGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
               >
-                <Ionicons name="document-text" size={24} color="#FFFFFF" />
-                <Text style={styles.actionText}>Documents</Text>
+                <Ionicons name="storefront" size={28} color={Colors.white} />
+                <Text style={styles.actionText}>Browse Stores</Text>
               </LinearGradient>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionCard}>
               <LinearGradient
-                colors={['#4FACFE', '#00F2FE']}
+                colors={[Colors.error, Colors.error]}
                 style={styles.actionGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
               >
-                <Ionicons name="help-circle" size={24} color="#FFFFFF" />
-                <Text style={styles.actionText}>Help</Text>
+                <Ionicons name="heart" size={28} color={Colors.white} />
+                <Text style={styles.actionText}>Favorites</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionCard}>
+              <LinearGradient
+                colors={[Colors.warning, Colors.warning]}
+                style={styles.actionGradient}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <Ionicons name="time" size={28} color={Colors.white} />
+                <Text style={styles.actionText}>Order History</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -277,74 +241,74 @@ const Profile: React.FC<Props> = ({ navigation }) => {
         {/* Settings */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Settings</Text>
-          
+
           <View style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <Ionicons name="notifications" size={24} color="#666666" />
+              <Ionicons name="notifications" size={24} color={Colors.text.secondary} />
               <Text style={styles.settingText}>Push Notifications</Text>
             </View>
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: '#E5E7EB', true: '#00D4AA' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: Colors.gray[300], true: Colors.primary }}
+              thumbColor={Colors.white}
             />
           </View>
 
           <View style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <Ionicons name="location" size={24} color="#666666" />
+              <Ionicons name="location" size={24} color={Colors.text.secondary} />
               <Text style={styles.settingText}>Location Services</Text>
             </View>
             <Switch
               value={locationEnabled}
               onValueChange={setLocationEnabled}
-              trackColor={{ false: '#E5E7EB', true: '#00D4AA' }}
-              thumbColor="#FFFFFF"
+              trackColor={{ false: Colors.gray[300], true: Colors.primary }}
+              thumbColor={Colors.white}
             />
           </View>
 
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity style={styles.settingItem} onPress={handlePrivacyPolicy}>
             <View style={styles.settingLeft}>
-              <Ionicons name="shield-checkmark" size={24} color="#666666" />
+              <Ionicons name="shield-checkmark" size={24} color={Colors.text.secondary} />
               <Text style={styles.settingText}>Privacy Policy</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#CCCCCC" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.gray[300]} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem}>
+          <TouchableOpacity style={styles.settingItem} onPress={handleTermsOfService}>
             <View style={styles.settingLeft}>
-              <Ionicons name="document-text" size={24} color="#666666" />
+              <Ionicons name="document-text" size={24} color={Colors.text.secondary} />
               <Text style={styles.settingText}>Terms of Service</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#CCCCCC" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.gray[300]} />
           </TouchableOpacity>
         </View>
 
         {/* Support */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support</Text>
-          
-          <TouchableOpacity style={styles.settingItem}>
+
+          <TouchableOpacity style={styles.settingItem} onPress={handleSupport}>
             <View style={styles.settingLeft}>
-              <Ionicons name="chatbubble-ellipses" size={24} color="#666666" />
+              <Ionicons name="chatbubble-ellipses" size={24} color={Colors.text.secondary} />
               <Text style={styles.settingText}>Contact Support</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#CCCCCC" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.gray[300]} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingItem}>
             <View style={styles.settingLeft}>
-              <Ionicons name="information-circle" size={24} color="#666666" />
+              <Ionicons name="information-circle" size={24} color={Colors.text.secondary} />
               <Text style={styles.settingText}>About Swiftly</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#CCCCCC" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.gray[300]} />
           </TouchableOpacity>
         </View>
 
         {/* Sign Out */}
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <Ionicons name="log-out-outline" size={20} color="#EF4444" />
+          <Ionicons name="log-out-outline" size={20} color={Colors.error} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
@@ -357,7 +321,7 @@ const Profile: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
   },
   gradient: {
     position: 'absolute',
@@ -373,19 +337,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontFamily: 'Poppins-Medium',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     paddingHorizontal: 32,
   },
   errorTitle: {
@@ -398,19 +362,19 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 24,
     fontFamily: 'Poppins-Regular',
   },
   retryButton: {
-    backgroundColor: '#00D4AA',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 16,
     fontWeight: '600',
     fontFamily: 'Poppins-SemiBold',
@@ -429,7 +393,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -441,14 +405,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     fontFamily: 'Poppins-Bold',
   },
   editButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.background.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -460,17 +424,18 @@ const styles = StyleSheet.create({
 
   // Profile Card
   profileCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 24,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    padding: 0,
     marginHorizontal: 20,
+    marginTop: 16,
     marginBottom: 24,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
   },
   avatarContainer: {
     position: 'relative',
@@ -480,7 +445,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#00D4AA',
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -496,7 +461,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -513,19 +478,19 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 4,
     fontFamily: 'Poppins-Bold',
   },
   email: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginBottom: 4,
     fontFamily: 'Poppins-Regular',
   },
   phone: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginBottom: 20,
     fontFamily: 'Poppins-Regular',
   },
@@ -541,19 +506,19 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#00D4AA',
+    color: Colors.primary,
     fontFamily: 'Poppins-Bold',
   },
   statLabel: {
     fontSize: 12,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginTop: 4,
     fontFamily: 'Poppins-Medium',
   },
   statDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: Colors.gray[300],
   },
 
   // Sections
@@ -564,7 +529,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 16,
     fontFamily: 'Poppins-Bold',
   },
@@ -577,27 +542,28 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     width: '48%',
-    marginBottom: 12,
-    borderRadius: 16,
+    marginBottom: 16,
+    borderRadius: 20,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 8,
   },
   actionGradient: {
-    padding: 20,
+    padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 100,
+    minHeight: 110,
   },
   actionText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '600',
-    marginTop: 8,
-    fontFamily: 'Poppins-SemiBold',
+    fontWeight: '700',
+    marginTop: 10,
+    fontFamily: 'Poppins-Bold',
+    letterSpacing: 0.5,
   },
 
   // Settings
@@ -605,16 +571,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    marginBottom: 8,
+    backgroundColor: Colors.white,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   settingLeft: {
     flexDirection: 'row',
@@ -622,7 +588,7 @@ const styles = StyleSheet.create({
   },
   settingText: {
     fontSize: 16,
-    color: '#333333',
+    color: Colors.text.primary,
     marginLeft: 12,
     fontFamily: 'Poppins-Medium',
   },
@@ -634,22 +600,68 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FEF2F2',
     marginHorizontal: 20,
-    marginTop: 16,
-    paddingVertical: 16,
-    borderRadius: 12,
+    marginTop: 24,
+    paddingVertical: 18,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: '#FECACA',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   signOutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#EF4444',
+    color: Colors.error,
     marginLeft: 8,
     fontFamily: 'Poppins-SemiBold',
   },
 
   bottomSpacer: {
     height: 100,
+  },
+
+  // Customer-specific styles
+  customerStatsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+    marginTop: 20,
+  },
+  customerStatItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.background.secondary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statContent: {
+    alignItems: 'center',
+  },
+  customerStatValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333333',
+    fontFamily: 'Poppins-Bold',
+  },
+  customerStatLabel: {
+    fontSize: 12,
+    color: '#666666',
+    marginTop: 2,
+    fontFamily: 'Poppins-Medium',
   },
 });
 

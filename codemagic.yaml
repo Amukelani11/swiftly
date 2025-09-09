@@ -68,12 +68,12 @@ workflows:
     artifacts:
       - build/**
       - "*.ipa"
-    publishing:
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: false
+    # publishing:
+    #   app_store_connect:
+    #     api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+    #     key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+    #     issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+    #     submit_to_testflight: false
 
   android-production:
     name: Android Production Build
@@ -111,10 +111,3 @@ workflows:
       - build/**
       - "*.apk"
       - "*.aab"
-    publishing:
-      # Google Play publishing (only if credentials are provided)
-      # google_play:
-      #   credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-      #   track: production
-      #   in_app_update_priority: 3
-      #   rollout_fraction: 0.1

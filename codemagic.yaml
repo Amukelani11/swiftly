@@ -7,6 +7,7 @@ workflows:
       java: 17
       xcode: latest
       cocoapods: default
+      EXPO_TOKEN: XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp
     triggering:
       events:
         - push
@@ -44,6 +45,7 @@ workflows:
       java: 17
       xcode: latest
       cocoapods: default
+      EXPO_TOKEN: XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp
     triggering:
       events:
         - push
@@ -87,6 +89,7 @@ workflows:
       java: 17
       xcode: latest
       cocoapods: default
+      EXPO_TOKEN: XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp
     triggering:
       events:
         - push

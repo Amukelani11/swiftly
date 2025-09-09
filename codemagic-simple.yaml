@@ -5,6 +5,7 @@ workflows:
     environment:
       node: latest
       java: 17
+      EXPO_TOKEN: XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp
     scripts:
       - name: Install dependencies
         script: npm install
@@ -25,6 +26,7 @@ workflows:
     environment:
       node: latest
       java: 17
+      EXPO_TOKEN: XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp
     scripts:
       - name: Install dependencies
         script: npm install

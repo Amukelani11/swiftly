@@ -1,36 +1,36 @@
 workflows:
-          android-development:
-            name: Android Debug Build (No EAS)
-            max_build_duration: 120
-            environment:
-              node: 20
-              java: 17
-            triggering:
-              events:
-                - push
-                - pull_request
-              branch_patterns:
-                - pattern: "*"
-                  include: true
-            scripts:
-              - name: Install dependencies
-                script: pnpm install --frozen-lockfile
-              - name: Set up environment variables
-                script: |
-                  # Set defaults if variables are not provided
-                  echo "REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL:-your_supabase_url_here}" >> .env
-                  echo "REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY:-your_supabase_key_here}" >> .env
-                  echo "GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-your_maps_key_here}" >> .env
-              - name: Clean autolinking cache
-                script: |
-                  rm -rf android/app/build/generated/autolinking
-                  rm -rf node_modules/.cache
-              - name: Prebuild native (Expo → Android)
-                script: npx expo prebuild --platform android --no-install
-              - name: Build debug APK
-                script: |
-                  cd android
-                  ./gradlew assembleDebug
+  android-development:
+    name: Android Debug Build (No EAS)
+    max_build_duration: 120
+    environment:
+      node: 20
+      java: 17
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: "*"
+          include: true
+    scripts:
+      - name: Install dependencies
+        script: pnpm install --frozen-lockfile
+      - name: Set up environment variables
+        script: |
+          # Set defaults if variables are not provided
+          echo "REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL:-your_supabase_url_here}" >> .env
+          echo "REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY:-your_supabase_key_here}" >> .env
+          echo "GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-your_maps_key_here}" >> .env
+      - name: Clean autolinking cache
+        script: |
+          rm -rf android/app/build/generated/autolinking
+          rm -rf node_modules/.cache
+      - name: Prebuild native (Expo → Android)
+        script: npx expo prebuild --platform android --no-install
+      - name: Build debug APK
+        script: |
+          cd android
+          ./gradlew assembleDebug
     artifacts:
       - android/app/build/outputs/apk/debug/app-debug.apk
 
@@ -67,53 +67,53 @@ workflows:
     artifacts:
       - ios/build/Swiftly.xcarchive
 
-          android-release:
-            name: Android Release Build (No EAS)
-            max_build_duration: 120
-            environment:
-              node: 20
-              java: 17
-            triggering:
-              events:
-                - push
-              branch_patterns:
-                - pattern: "main"
-                  include: true
-              tag_patterns:
-                - pattern: "v*"
-                  include: true
-            scripts:
-              - name: Install dependencies
-                script: pnpm install --frozen-lockfile
-              - name: Set up environment variables
-                script: |
-                  # Set defaults if variables are not provided
-                  echo "REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL:-your_supabase_url_here}" >> .env
-                  echo "REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY:-your_supabase_key_here}" >> .env
-                  echo "GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-your_maps_key_here}" >> .env
-              - name: Clean autolinking cache
-                script: |
-                  rm -rf android/app/build/generated/autolinking
-                  rm -rf node_modules/.cache
-              - name: Prebuild native (Expo → Android)
-                script: npx expo prebuild --platform android --no-install
-              - name: Setup keystore (if provided)
-                script: |
-                  # Only setup keystore if variables are provided
-                  if [ ! -z "$ANDROID_KEYSTORE_BASE64" ]; then
-                    echo "Setting up keystore for signed build..."
-                    echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/keystore.jks
-                    cat >> android/gradle.properties << EOF
-                    MYAPP_UPLOAD_STORE_FILE=keystore.jks
-                    MYAPP_UPLOAD_STORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD
-                    MYAPP_UPLOAD_KEY_ALIAS=$ANDROID_KEY_ALIAS
-                    MYAPP_UPLOAD_KEY_PASSWORD=$ANDROID_KEY_ALIAS_PASSWORD
-                    EOF
-                  fi
-              - name: Build release AAB
-                script: |
-                  cd android
-                  ./gradlew bundleRelease
+  android-release:
+    name: Android Release Build (No EAS)
+    max_build_duration: 120
+    environment:
+      node: 20
+      java: 17
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: "main"
+          include: true
+      tag_patterns:
+        - pattern: "v*"
+          include: true
+    scripts:
+      - name: Install dependencies
+        script: pnpm install --frozen-lockfile
+      - name: Set up environment variables
+        script: |
+          # Set defaults if variables are not provided
+          echo "REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL:-your_supabase_url_here}" >> .env
+          echo "REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY:-your_supabase_key_here}" >> .env
+          echo "GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-your_maps_key_here}" >> .env
+      - name: Clean autolinking cache
+        script: |
+          rm -rf android/app/build/generated/autolinking
+          rm -rf node_modules/.cache
+      - name: Prebuild native (Expo → Android)
+        script: npx expo prebuild --platform android --no-install
+      - name: Setup keystore (if provided)
+        script: |
+          # Only setup keystore if variables are provided
+          if [ ! -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "Setting up keystore for signed build..."
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/keystore.jks
+            cat >> android/gradle.properties << EOF
+            MYAPP_UPLOAD_STORE_FILE=keystore.jks
+            MYAPP_UPLOAD_STORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD
+            MYAPP_UPLOAD_KEY_ALIAS=$ANDROID_KEY_ALIAS
+            MYAPP_UPLOAD_KEY_PASSWORD=$ANDROID_KEY_ALIAS_PASSWORD
+            EOF
+          fi
+      - name: Build release AAB
+        script: |
+          cd android
+          ./gradlew bundleRelease
     artifacts:
       - android/app/build/outputs/bundle/release/app-release.aab
       - android/app/build/outputs/apk/release/app-release.apk

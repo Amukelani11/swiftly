@@ -17,12 +17,22 @@ workflows:
           corepack prepare pnpm@latest --activate
       - name: Install dependencies
         script: pnpm install --frozen-lockfile
-      - name: Clean autolinking cache
-        script: |
-          rm -rf android/app/build/generated/autolinking
-          rm -rf node_modules/.cache
       - name: Prebuild native (Expo → Android)
         script: npx expo prebuild --platform android --no-install
+
+      # 👇 NEW: bundle JS so debug APK runs without Metro
+      - name: Bundle JS for debug (offline)
+        script: |
+          ENTRY="index.js"
+          [ -f "index.ts" ] && ENTRY="index.ts"
+          mkdir -p android/app/src/main/assets
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --entry-file "$ENTRY" \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res
+
       - name: Build debug APK
         script: |
           cd android
@@ -81,10 +91,6 @@ workflows:
           corepack prepare pnpm@latest --activate
       - name: Install dependencies
         script: pnpm install --frozen-lockfile
-      - name: Clean autolinking cache
-        script: |
-          rm -rf android/app/build/generated/autolinking
-          rm -rf node_modules/.cache
       - name: Prebuild native (Expo → Android)
         script: npx expo prebuild --platform android --no-install
       - name: Setup keystore (if provided)
@@ -98,11 +104,11 @@ workflows:
             MYAPP_UPLOAD_KEY_PASSWORD=$ANDROID_KEY_ALIAS_PASSWORD
             EOF
           fi
-      - name: Build release AAB
+      - name: Build release AAB + APK
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew bundleRelease
+          ./gradlew bundleRelease assembleRelease
     artifacts:
       - android/app/build/outputs/bundle/release/app-release.aab
       - android/app/build/outputs/apk/release/app-release.apk

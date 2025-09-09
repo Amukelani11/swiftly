@@ -40,6 +40,7 @@
     "react-native-view-shot": "4.0.3"
   },
   "devDependencies": {
+    "@anthropic-ai/claude-code": "^1.0.109",
     "@babel/core": "^7.20.0",
     "@expo/config-plugins": "^10.1.2",
     "@react-native-community/cli": "^20.0.1",

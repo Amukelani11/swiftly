@@ -5,8 +5,8 @@ workflows:
     environment:
       node: 20
       java: 17
-    environment_variables:
-      EXPO_USE_COMMUNITY_AUTOLINKING: "1"
+      vars:
+        EXPO_USE_COMMUNITY_AUTOLINKING: "1"
     triggering:
       events: [push, pull_request]
       branch_patterns: [{ pattern: "*", include: true }]
@@ -68,8 +68,8 @@ workflows:
     environment:
       node: 20
       java: 17
-    environment_variables:
-      EXPO_USE_COMMUNITY_AUTOLINKING: "1"
+      vars:
+        EXPO_USE_COMMUNITY_AUTOLINKING: "1"
     triggering:
       events: [push]
       branch_patterns: [{ pattern: "main", include: true }]

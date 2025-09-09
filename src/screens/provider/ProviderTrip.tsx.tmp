@@ -1,0 +1,140 @@
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, Platform, Linking } from 'react-native';
+import MapView, { Marker, Polyline } from 'react-native-maps';
+import { useRoute, RouteProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../../types';
+import { Colors } from '../../styles/theme';
+import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
+import { supabase } from '../../lib/supabase';
+import { googleMaps } from '../../lib/googleMaps';
+import { isNativeNavigationAvailable, startTurnByTurn, geocodeAddress, getDirections } from '../../native/navigation';
+import { buildGoogleDirectionsUrl } from '../../utils/navigationUrl';
+import WebNavigationSheet from '../../components/WebNavigationSheet';
+
+type NavProp = StackNavigationProp<RootStackParamList, 'ProviderTrip'>;
+
+const ProviderTrip: React.FC<{ navigation: NavProp }> = ({ navigation }) => {
+  const route = useRoute<RouteProp<RootStackParamList, 'ProviderTrip'>>();
+  const { requestId, storeLat, storeLng, dropoffLat, dropoffLng, title, description } = route.params || {} as any;
+
+  // State for fallback coordinate resolution
+  const [resolvedStoreCoords, setResolvedStoreCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [resolvedDropoffCoords, setResolvedDropoffCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const mapRef = useRef<MapView | null>(null);
+  const [providerLoc, setProviderLoc] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(true);
+  const [routeToStore, setRouteToStore] = useState<Array<{ latitude: number; longitude: number }> | null>(null);
+  const [routeToDropoff, setRouteToDropoff] = useState<Array<{ latitude: number; longitude: number }> | null>(null);
+  const [stepsToStore, setStepsToStore] = useState<any[] | null>(null);
+  const [stepsToDropoff, setStepsToDropoff] = useState<any[] | null>(null);
+  const [activeLeg, setActiveLeg] = useState<'store' | 'dropoff'>('store');
+  const [stepIndex, setStepIndex] = useState(0);
+  const [webNavVisible, setWebNavVisible] = useState(false);
+  const [webNavUrl, setWebNavUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Subscribe to provider_status to keep provider location fresh
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // First, try to get current location immediately
+      try {
+        console.log('Getting current location for navigation...');
+        setIsLoadingLocation(true);
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.High,
+            timeout: 10000,
+          });
+          setProviderLoc({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+          });
+          console.log('Current location obtained:', location.coords);
+        } else {
+          console.log('Location permission denied');
+          Alert.alert('Location Permission', 'Location permission is required for navigation. Please grant permission and try again.');
+        }
+      } catch (error) {
+        console.warn('Failed to get current location:', error);
+        Alert.alert('Location Error', 'Unable to get your current location. Please check your GPS settings.');
+      } finally {
+        setIsLoadingLocation(false);
+      }
+
+      // Subscribe to provider_status for real-time updates
+      const ch = supabase
+        .channel('prov_trip_loc')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'provider_status', filter: `user_id=eq.${user.id}` }, (p: any) => {
+          const row = p?.new || p?.record;
+          if (row && typeof row.lat === 'number' && typeof row.lng === 'number') {
+            setProviderLoc({ latitude: row.lat, longitude: row.lng });
+            console.log('Location updated from provider_status:', row);
+          }
+        })
+        .subscribe();
+      return () => { try { ch.unsubscribe(); } catch {} };
+    })();
+  }, []);
+
+  // Fallback coordinate resolution
+  useEffect(() => {
+    const resolveMissingCoords = async () => {
+      try {
+        // Resolve store coordinates if missing
+        if (typeof storeLat !== 'number' || typeof storeLng !== 'number') {
+          if (title && title !== 'Shopping Request') {
+            console.log('Attempting to geocode store address:', title);
+            try {
+              const coords = await geocodeAddress(title);
+              setResolvedStoreCoords(coords);
+              console.log('Store coordinates resolved:', coords);
+            } catch (error) {
+              console.warn('Failed to geocode store address:', error);
+            }
+          }
+        }
+
+        // Resolve dropoff coordinates if missing
+        if (typeof dropoffLat !== 'number' || typeof dropoffLng !== 'number') {
+          if (description) {
+            console.log('Attempting to geocode dropoff address:', description);
+            try {
+              const coords = await geocodeAddress(description);
+              setResolvedDropoffCoords(coords);
+              console.log('Dropoff coordinates resolved:', coords);
+            } catch (error) {
+              console.warn('Failed to geocode dropoff address:', error);
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Coordinate resolution failed:', error);
+      }
+    };
+
+    // Only attempt resolution if we have some missing coordinates
+    const hasMissingCoords = (
+      (typeof storeLat !== 'number' || typeof storeLng !== 'number') ||
+      (typeof dropoffLat !== 'number' || typeof dropoffLng !== 'number')
+    );
+
+    if (hasMissingCoords) {
+      console.log('Some coordinates missing, attempting to resolve...');
+      resolveMissingCoords();
+    }
+  }, [storeLat, storeLng, dropoffLat, dropoffLng, title, description]);
+
+  // Fetch route polylines using edge function
+  useEffect(() => {
+    const run = async () => {
+      try {
+        if (typeof storeLat === 'number' && typeof storeLng === 'number' && typeof dropoffLat === 'number' && typeof dropoffLng === 'number') {
+          const d = await getDirections(
+            { lat: storeLat, lng: storeLng },
+            { lat: dropoffLat, lng: dropoffLng },
+            { mode: 'driving' }

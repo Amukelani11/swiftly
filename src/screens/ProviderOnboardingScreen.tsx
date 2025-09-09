@@ -16,6 +16,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '../styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { RootStackParamList } from '../types';
@@ -605,7 +606,7 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
                   </View>
                 ) : (
                   <>
-                    <Ionicons name="document" size={24} color={errors.idDocument ? "#FF4444" : "#333333"} />
+                    <Ionicons name="document" size={24} color={errors.idDocument ? Colors.error : Colors.text.primary} />
                     <Text style={[styles.uploadButtonText, errors.idDocument && styles.uploadButtonTextError]}>
                       Upload ID Document
                     </Text>
@@ -645,7 +646,7 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
                   </View>
                 ) : (
                   <>
-                    <Ionicons name="home" size={24} color={errors.proofOfAddress ? "#FF4444" : "#333333"} />
+                    <Ionicons name="home" size={24} color={errors.proofOfAddress ? Colors.error : Colors.text.primary} />
                     <Text style={[styles.uploadButtonText, errors.proofOfAddress && styles.uploadButtonTextError]}>
                       Upload Proof of Address
                     </Text>
@@ -672,7 +673,7 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
                   if (errors.vehicleType) setErrors({...errors, vehicleType: ''});
                 }}
               >
-                                 <Ionicons name="car" size={24} color={vehicleType === 'car' ? '#fff' : '#6CA0DC'} />
+                                 <Ionicons name="car" size={24} color={vehicleType === 'car' ? '#fff' : Colors.secondary} />
                 <Text style={[styles.vehicleTypeText, vehicleType === 'car' && styles.vehicleTypeTextActive]}>
                   Car
                 </Text>
@@ -689,7 +690,7 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
                   if (errors.vehicleType) setErrors({...errors, vehicleType: ''});
                 }}
               >
-                                 <Ionicons name="bicycle" size={24} color={vehicleType === 'motorbike' ? '#fff' : '#6CA0DC'} />
+                                 <Ionicons name="bicycle" size={24} color={vehicleType === 'motorbike' ? '#fff' : Colors.secondary} />
                 <Text style={[styles.vehicleTypeText, vehicleType === 'motorbike' && styles.vehicleTypeTextActive]}>
                   Motorbike
                 </Text>
@@ -772,7 +773,7 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
                   </View>
                 ) : (
                   <>
-                    <Ionicons name="card-outline" size={24} color={errors.driversLicense ? "#FF4444" : "#333333"} />
+                    <Ionicons name="card-outline" size={24} color={errors.driversLicense ? Colors.error : Colors.text.primary} />
                     <Text style={[styles.uploadButtonText, errors.driversLicense && styles.uploadButtonTextError]}>
                       Upload Driver's License
                     </Text>
@@ -821,7 +822,7 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
                     </View>
                   ) : (
                     <>
-                      <Ionicons name="camera" size={32} color="#6CA0DC" />
+                      <Ionicons name="camera" size={32} color={Colors.secondary} />
                       <Text style={styles.profilePictureUploadText}>Upload Profile Picture</Text>
                       <Text style={styles.profilePictureHint}>Tap to select photo</Text>
                     </>
@@ -878,9 +879,9 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
     if (checkingStatus) {
       return (
         <SafeAreaView style={styles.container}>
-          <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+          <StatusBar barStyle="dark-content" backgroundColor={Colors.background.base} />
           <LinearGradient
-            colors={['#F5F5F5', '#FFFFFF']}
+            colors={[Colors.background.base, '#FFFFFF']}
             style={styles.gradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
@@ -897,9 +898,9 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
     if (applicationStatus === 'pending' || applicationStatus === 'rejected') {
       return (
         <SafeAreaView style={styles.container}>
-          <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+          <StatusBar barStyle="dark-content" backgroundColor={Colors.background.base} />
           <LinearGradient
-            colors={['#F5F5F5', '#FFFFFF']}
+            colors={[Colors.background.base, '#FFFFFF']}
             style={styles.gradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
@@ -943,10 +944,10 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
 
     return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background.base} />
       
       <LinearGradient
-        colors={['#F5F5F5', '#FFFFFF']}
+        colors={[Colors.background.base, '#FFFFFF']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -956,7 +957,7 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
       <View style={styles.header}>
         {expandedSection ? (
           <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={24} color="#333333" />
+            <Ionicons name="chevron-back" size={24} color={Colors.text.primary} />
           </TouchableOpacity>
         ) : null}
         
@@ -1032,7 +1033,7 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
                     <Ionicons 
                       name={section.icon as any} 
                       size={24} 
-                      color={isSectionComplete(section.key) ? '#4CAF50' : '#333333'} 
+                      color={isSectionComplete(section.key) ? Colors.success : Colors.text.primary} 
                     />
                   </View>
                   <View style={styles.sectionContent}>
@@ -1054,8 +1055,8 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
                        <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
                      ) : (
                        <View style={styles.arrowContainer}>
-                         <Ionicons name="chevron-forward" size={20} color="#333333" />
-                         <Ionicons name="chevron-forward" size={20} color="#333333" style={styles.secondArrow} />
+                         <Ionicons name="chevron-forward" size={20} color={Colors.text.primary} />
+                         <Ionicons name="chevron-forward" size={20} color={Colors.text.primary} style={styles.secondArrow} />
                        </View>
                      )}
                    </View>
@@ -1092,7 +1093,7 @@ export default function ProviderOnboardingScreen({ route }: ProviderOnboardingSc
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.base,
   },
   gradient: {
     position: 'absolute',
@@ -1152,7 +1153,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#6CA0DC',
+    backgroundColor: Colors.secondary,
     borderRadius: 3,
   },
   progressText: {
@@ -1283,7 +1284,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#6CA0DC',
+    borderColor: Colors.secondary,
     borderStyle: 'dashed',
     borderRadius: 16,
     paddingHorizontal: 20,
@@ -1297,7 +1298,7 @@ const styles = StyleSheet.create({
   },
   uploadButtonText: {
     fontSize: 16,
-    color: '#6CA0DC',
+    color: Colors.secondary,
     marginLeft: 12,
     fontWeight: '600',
     fontFamily: 'Poppins-SemiBold',
@@ -1324,12 +1325,12 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   vehicleTypeButtonActive: {
-    backgroundColor: '#6CA0DC',
-    borderColor: '#6CA0DC',
+    backgroundColor: Colors.secondary,
+    borderColor: Colors.secondary,
   },
   vehicleTypeText: {
     fontSize: 16,
-    color: '#6CA0DC',
+    color: Colors.secondary,
     marginLeft: 8,
     fontWeight: '600',
     fontFamily: 'Poppins-SemiBold',
@@ -1384,7 +1385,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   primaryButton: {
-    backgroundColor: '#6CA0DC',
+    backgroundColor: Colors.secondary,
   },
   buttonDisabled: {
     backgroundColor: '#CCCCCC',
@@ -1431,7 +1432,7 @@ const styles = StyleSheet.create({
      borderRadius: 20,
      borderWidth: 4,
      borderColor: '#E0E0E0',
-     borderTopColor: '#6CA0DC',
+     borderTopColor: Colors.secondary,
      marginBottom: 20,
    },
    loadingText: {
@@ -1483,7 +1484,7 @@ const styles = StyleSheet.create({
      fontFamily: 'Poppins-Regular',
    },
    refreshButton: {
-     backgroundColor: '#6CA0DC',
+     backgroundColor: Colors.secondary,
      borderRadius: 16,
      paddingHorizontal: 32,
      paddingVertical: 16,
@@ -1522,7 +1523,7 @@ const styles = StyleSheet.create({
    uploadedFileName: {
      fontSize: 16,
      fontWeight: '600',
-     color: '#333333',
+     color: Colors.text.primary,
      fontFamily: 'Poppins-SemiBold',
    },
    uploadedFileStatus: {
@@ -1544,12 +1545,12 @@ const styles = StyleSheet.create({
      borderRadius: 10,
      borderWidth: 2,
      borderColor: '#E0E0E0',
-     borderTopColor: '#6CA0DC',
+     borderTopColor: Colors.secondary,
      marginRight: 8,
    },
    uploadingText: {
      fontSize: 16,
-     color: '#666666',
+     color: Colors.text.secondary,
      fontFamily: 'Poppins-Regular',
    },
    // Profile picture upload styles
@@ -1559,7 +1560,7 @@ const styles = StyleSheet.create({
 
    requirementsText: {
      fontSize: 14,
-     color: '#666666',
+     color: Colors.text.secondary,
      marginBottom: 16,
      fontFamily: 'Poppins-Regular',
      lineHeight: 20,
@@ -1581,7 +1582,7 @@ const styles = StyleSheet.create({
    profilePictureName: {
      fontSize: 16,
      fontWeight: '600',
-     color: '#333333',
+     color: Colors.text.primary,
      marginLeft: 12,
      fontFamily: 'Poppins-SemiBold',
    },
@@ -1607,7 +1608,7 @@ const styles = StyleSheet.create({
    profilePictureUploadText: {
      fontSize: 16,
      fontWeight: '600',
-     color: '#6CA0DC',
+     color: Colors.secondary,
      marginTop: 8,
      fontFamily: 'Poppins-SemiBold',
    },
@@ -1633,12 +1634,12 @@ const styles = StyleSheet.create({
      borderRadius: 6,
      borderWidth: 1.5,
      borderColor: '#E0E0E0',
-     borderTopColor: '#6CA0DC',
+     borderTopColor: Colors.secondary,
      marginRight: 6,
    },
    saveText: {
      fontSize: 12,
-     color: '#666666',
+     color: Colors.text.secondary,
      fontFamily: 'Poppins-Regular',
    },
  });

@@ -6,19 +6,20 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '../styles/theme';
 
 const LoadingScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#F5F5F5', '#FFFFFF']}
+        colors={[Colors.background.base, Colors.white]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
       />
       
       <View style={styles.content}>
-        <ActivityIndicator size="large" color="#FFC857" />
+        <ActivityIndicator size="large" color={Colors.secondary} />
         <Text style={styles.text}>Loading...</Text>
       </View>
     </View>
@@ -28,7 +29,7 @@ const LoadingScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.base,
   },
   gradient: {
     position: 'absolute',
@@ -45,7 +46,7 @@ const styles = StyleSheet.create({
   text: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontFamily: 'Poppins-Medium',
   },
 });

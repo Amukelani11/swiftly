@@ -11,6 +11,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
+import { Colors } from '../styles/theme';
 
 type ProviderTypeNavigationProp = StackNavigationProp<RootStackParamList, 'ProviderType'>;
 
@@ -35,10 +36,10 @@ const ProviderTypeScreen: React.FC<Props> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background.base} />
       
       <LinearGradient
-        colors={['#F5F5F5', '#FFFFFF']}
+        colors={[Colors.background.base, '#FFFFFF']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -46,7 +47,7 @@ const ProviderTypeScreen: React.FC<Props> = ({ navigation }) => {
 
       <View style={styles.content}>
         {/* Header */}
-        <View style={styles.header}>
+      <View style={styles.header}>
           <Text style={styles.title}>Personal Shopper</Text>
           <Text style={styles.subtitle}>
             Setting up your shopping service...
@@ -95,7 +96,7 @@ const ProviderTypeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.base,
   },
   gradient: {
     position: 'absolute',
@@ -116,14 +117,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     textAlign: 'center',
     marginBottom: 8,
     fontFamily: 'Poppins-Bold',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     fontFamily: 'Poppins-Regular',
   },
@@ -183,7 +184,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
     fontFamily: 'Poppins-Regular',
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#6CA0DC',
+    color: Colors.secondary,
     fontFamily: 'Poppins-Medium',
   },
 });

@@ -1,9 +1,10 @@
+// metro.config.js - React Native 0.73+ compatible
 const { getDefaultConfig } = require('@expo/metro-config');
 
 const projectRoot = __dirname;
 const config = getDefaultConfig(projectRoot);
 
-// React Native 0.73+ Metro config
+// React Native 0.73+ Metro config with proper asset handling
 config.resolver = {
   ...config.resolver,
   // Exclude problematic assets from being processed as modules

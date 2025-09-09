@@ -30,10 +30,10 @@ const { width, height } = Dimensions.get('window');
 const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.gray100} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background.base} />
       
       <LinearGradient
-        colors={[Colors.gray100, Colors.white]}
+        colors={[Colors.background.base, Colors.white]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -42,7 +42,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
       <View style={styles.content}>
         {/* Logo Section */}
         <View style={styles.logoSection}>
-          <Image source={require('../../assets/Swiftly).png')} style={styles.logoImage} resizeMode="contain" />
+          <Image source={require('../../assets/Swiftly.png')} style={styles.logoImage} resizeMode="contain" />
         </View>
 
         {/* Main Content */}
@@ -87,7 +87,7 @@ const WelcomeScreen: React.FC<Props> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.base,
   },
   gradient: {
     position: 'absolute',
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFC857',
+    backgroundColor: Colors.secondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   headline: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     textAlign: 'center',
     marginBottom: 16,
     fontFamily: 'Poppins-Bold',
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: 18,
-    color: '#666666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 26,
     fontFamily: 'Poppins-Regular',
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     alignItems: 'center',
     marginBottom: 12,
-    shadowColor: '#6CA0DC',
+    shadowColor: Colors.primary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#FFC857',
+    shadowColor: Colors.secondary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -213,10 +213,9 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: 16,
-    color: '#6CA0DC',
+    color: Colors.secondary,
     fontFamily: 'Poppins-Medium',
   },
 });
 
 export default WelcomeScreen;
-

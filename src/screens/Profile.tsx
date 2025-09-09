@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginTop: 16,
     marginBottom: 8,
     fontFamily: 'Poppins-Bold',
@@ -654,12 +654,12 @@ const styles = StyleSheet.create({
   customerStatValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     fontFamily: 'Poppins-Bold',
   },
   customerStatLabel: {
     fontSize: 12,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginTop: 2,
     fontFamily: 'Poppins-Medium',
   },

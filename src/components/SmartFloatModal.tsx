@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../styles/theme';
 import { formatCurrencySafe } from '../utils/format';
 
 interface SmartFloatModalProps {
@@ -90,7 +91,7 @@ const SmartFloatModal: React.FC<SmartFloatModalProps> = ({
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           <LinearGradient
-            colors={['#FFFFFF', '#F8FAFC']}
+            colors={[Colors.white, Colors.background.base]}
             style={styles.gradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}
@@ -99,7 +100,7 @@ const SmartFloatModal: React.FC<SmartFloatModalProps> = ({
           {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#666666" />
+              <Ionicons name="close" size={24} color={Colors.text.secondary} />
             </TouchableOpacity>
             <View style={styles.headerContent}>
               <Ionicons name="wallet" size={32} color="#00D4AA" />
@@ -253,14 +254,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginTop: 12,
     marginBottom: 8,
     fontFamily: 'Poppins-Bold',
   },
   headerSubtitle: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     lineHeight: 22,
     fontFamily: 'Poppins-Regular',
@@ -284,13 +285,13 @@ const styles = StyleSheet.create({
   suggestionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 4,
     fontFamily: 'Poppins-SemiBold',
   },
   suggestionText: {
     fontSize: 14,
-    color: '#666666',
+    color: Colors.text.secondary,
     lineHeight: 20,
     fontFamily: 'Poppins-Regular',
   },
@@ -321,21 +322,21 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 12,
     fontFamily: 'Poppins-SemiBold',
   },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background.base,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.gray[300],
   },
   currencySymbol: {
     fontSize: 20,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginLeft: 16,
     marginRight: 8,
     fontFamily: 'Poppins-Medium',
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
   amountInput: {
     flex: 1,
     fontSize: 24,
-    color: '#333333',
+    color: Colors.text.primary,
     paddingVertical: 16,
     paddingRight: 16,
     fontFamily: 'Poppins-Bold',
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
   quickAmountsLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 12,
     fontFamily: 'Poppins-SemiBold',
   },
@@ -367,18 +368,18 @@ const styles = StyleSheet.create({
   },
   quickAmountButton: {
     width: '30%',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background.base,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 8,
     alignItems: 'center',
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.gray[300],
   },
   quickAmountText: {
     fontSize: 14,
-    color: '#333333',
+    color: Colors.text.primary,
     fontWeight: '600',
     fontFamily: 'Poppins-SemiBold',
   },
@@ -401,13 +402,13 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 4,
     fontFamily: 'Poppins-SemiBold',
   },
   infoText: {
     fontSize: 12,
-    color: '#666666',
+    color: Colors.text.secondary,
     lineHeight: 16,
     fontFamily: 'Poppins-Regular',
   },
@@ -420,16 +421,16 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background.base,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: Colors.gray[300],
   },
   cancelButtonText: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontWeight: '600',
     fontFamily: 'Poppins-SemiBold',
   },

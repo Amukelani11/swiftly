@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Colors } from '../styles/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../types';
@@ -236,7 +237,7 @@ const Wallet: React.FC<Props> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#FFFFFF', '#F8FAFC']}
+        colors={[Colors.white, Colors.background.base]}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -337,7 +338,7 @@ const Wallet: React.FC<Props> = ({ navigation }) => {
               <View style={styles.transactionRight}>
                 <Text style={[
                   styles.transactionAmount,
-                  { color: transaction.amount > 0 ? '#10B981' : '#EF4444' }
+                  { color: transaction.amount > 0 ? Colors.success : Colors.error }
                 ]}>
                   {transaction.amount > 0 ? '+' : ''}{formatCurrencySafe(transaction.amount)}
                 </Text>
@@ -379,7 +380,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontFamily: 'Poppins-Medium',
   },
   errorContainer: {
@@ -392,14 +393,14 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginTop: 16,
     marginBottom: 8,
     fontFamily: 'Poppins-Bold',
   },
   errorText: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 24,
     fontFamily: 'Poppins-Regular',
@@ -442,7 +443,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     fontFamily: 'Poppins-Bold',
   },
   headerRight: {
@@ -524,13 +525,13 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginTop: 8,
     fontFamily: 'Poppins-Bold',
   },
   statLabel: {
     fontSize: 12,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginTop: 4,
     fontFamily: 'Poppins-Medium',
   },
@@ -543,7 +544,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 16,
     fontFamily: 'Poppins-Bold',
   },
@@ -581,12 +582,12 @@ const styles = StyleSheet.create({
   },
   transactionDescription: {
     fontSize: 16,
-    color: '#333333',
+    color: Colors.text.primary,
     fontFamily: 'Poppins-Medium',
   },
   transactionDate: {
     fontSize: 12,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginTop: 2,
     fontFamily: 'Poppins-Regular',
   },
@@ -600,7 +601,7 @@ const styles = StyleSheet.create({
   },
   transactionStatus: {
     fontSize: 12,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginTop: 2,
     fontFamily: 'Poppins-Regular',
   },

@@ -75,14 +75,14 @@ const MapTestScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background.base,
   },
   header: {
     padding: 20,
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: Colors.gray[300],
   },
   title: {
     fontSize: 24,

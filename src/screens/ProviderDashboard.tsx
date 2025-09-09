@@ -24,6 +24,7 @@ import BottomNavigation from '../components/BottomNavigation';
 import SmartFloatModal from '../components/SmartFloatModal';
 import LiveMap from '../components/LiveMap';
 import JobNotification from '../components/JobNotification';
+import NavigationChoiceModal from '../components/NavigationChoiceModal';
 import SmoothTransitionButton from '../components/SmoothTransitionButton';
 import { supabase } from '../lib/supabase';
 import { formatCurrencySafe } from '../utils/format';
@@ -113,7 +114,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontFamily: 'Poppins-Medium',
   },
   errorContainer: {
@@ -126,14 +127,14 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginTop: 16,
     marginBottom: 8,
     fontFamily: 'Poppins-Bold',
   },
   errorText: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 24,
     fontFamily: 'Poppins-Regular',
@@ -165,14 +166,14 @@ const styles = StyleSheet.create({
   },
   welcomeText: {
     fontSize: 18,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginBottom: 4,
     fontFamily: 'Poppins-Medium',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     fontFamily: 'Poppins-Bold',
     lineHeight: 36,
   },
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
   earningsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginLeft: 8,
     fontFamily: 'Poppins-Bold',
   },
@@ -256,7 +257,7 @@ const styles = StyleSheet.create({
   },
   metaItem: {
     fontSize: 14,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontFamily: 'Poppins-Regular',
   },
   metaSeparator: {
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     fontFamily: 'Poppins-Bold',
   },
   seeAllText: {
@@ -333,13 +334,13 @@ const styles = StyleSheet.create({
   orderTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 4,
     fontFamily: 'Poppins-Bold',
   },
   orderDescription: {
     fontSize: 14,
-    color: '#666666',
+    color: Colors.text.secondary,
     lineHeight: 20,
     fontFamily: 'Poppins-Regular',
   },
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginLeft: 8,
     fontFamily: 'Poppins-Regular',
   },
@@ -379,15 +380,10 @@ const styles = StyleSheet.create({
   },
   earningsLabel: {
     fontSize: 12,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontFamily: 'Poppins-Regular',
   },
-  earningsAmount: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#00D4AA',
-    fontFamily: 'Poppins-Bold',
-  },
+  
   acceptButton: {
     backgroundColor: '#00D4AA',
     paddingHorizontal: 24,
@@ -411,13 +407,13 @@ const styles = StyleSheet.create({
   emptyOrdersTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 8,
     fontFamily: 'Poppins-Bold',
   },
   emptyOrdersText: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     marginBottom: 24,
     fontFamily: 'Poppins-Regular',
@@ -505,7 +501,7 @@ const styles = StyleSheet.create({
   earningsSummaryTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     textAlign: 'center',
     marginBottom: 20,
     fontFamily: 'Poppins-Bold',
@@ -524,7 +520,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background.base,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -539,14 +535,14 @@ const styles = StyleSheet.create({
   },
   earningsLabel: {
     fontSize: 12,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontFamily: 'Poppins-Medium',
     marginBottom: 4,
   },
   earningsValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     fontFamily: 'Poppins-Bold',
   },
   floatingActionButton: {
@@ -609,6 +605,10 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
   const [showJobNotification, setShowJobNotification] = useState(false);
   const [currentNotificationOrder, setCurrentNotificationOrder] = useState<Task | null>(null);
   const [providerLocation, setProviderLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [navChoiceVisible, setNavChoiceVisible] = useState(false);
+  const [acceptedDestination, setAcceptedDestination] = useState<{ lat: number; lng: number } | null>(null);
+  const [acceptedRequestId, setAcceptedRequestId] = useState<string | null>(null);
+  const arrivalCheckRef = useRef<number | null>(null);
 
   const locationWatcherRef = useRef<any>(null);
   const realtimeSubscriptionRef = useRef<any>(null);
@@ -1052,15 +1052,12 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
                 if (data?.success) {
                   setAvailableOrders((prev) => prev.filter((o) => o.id !== order.id));
                   try {
-                    navigation.navigate('ProviderTrip' as never, {
-                      requestId: data?.request?.id,
-                      storeLat: data?.request?.store_lat,
-                      storeLng: data?.request?.store_lng,
-                      dropoffLat: data?.request?.dropoff_lat,
-                      dropoffLng: data?.request?.dropoff_lng,
-                      title: data?.request?.store_name || 'Shopping Request',
-                      description: data?.request?.dropoff_address,
-                    } as never);
+                    // Show navigation choice so runner picks Google/Waze/In-app
+                    const destLat = data?.request?.dropoff_lat;
+                    const destLng = data?.request?.dropoff_lng;
+                    setAcceptedRequestId(data?.request?.id || null);
+                    setAcceptedDestination(typeof destLat === 'number' && typeof destLng === 'number' ? { lat: destLat, lng: destLng } : null);
+                    setNavChoiceVisible(true);
                   } catch {}
                 } else {
                   const reason = data?.reason || 'Already accepted by someone else';
@@ -1092,6 +1089,49 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
     return Math.round(R * c * 10) / 10; // Round to 1 decimal place
   }, []);
 
+  const clearArrivalCheck = useCallback(() => {
+    try {
+      if (arrivalCheckRef.current) {
+        clearInterval(arrivalCheckRef.current as any);
+        arrivalCheckRef.current = null;
+      }
+    } catch {}
+  }, []);
+
+  const handleExternalChosen = useCallback((provider: 'google' | 'waze') => {
+    // Start polling provider location and auto-open ProviderTrip when within 50m
+    setNavChoiceVisible(false);
+    if (!acceptedDestination) return;
+    // immediate check
+    if (providerLocation) {
+      const d = calculateDistance(providerLocation.latitude, providerLocation.longitude, acceptedDestination.lat, acceptedDestination.lng);
+      if (d < 0.05 && acceptedRequestId) {
+        Alert.alert('Arrived', 'Opening shopping screen');
+        navigation.navigate('ProviderTrip' as never, { requestId: acceptedRequestId, storeLat: undefined, storeLng: undefined, dropoffLat: acceptedDestination.lat, dropoffLng: acceptedDestination.lng } as never);
+        return;
+      }
+    }
+    // poll every 10s
+    clearArrivalCheck();
+    arrivalCheckRef.current = setInterval(() => {
+      if (!providerLocation) return;
+      const d = calculateDistance(providerLocation.latitude, providerLocation.longitude, acceptedDestination.lat, acceptedDestination.lng);
+      console.log('[arrival-check] distanceKm', d);
+      if (d < 0.05 && acceptedRequestId) {
+        clearArrivalCheck();
+        Alert.alert('Arrived', 'Opening shopping screen');
+        navigation.navigate('ProviderTrip' as never, { requestId: acceptedRequestId, storeLat: undefined, storeLng: undefined, dropoffLat: acceptedDestination.lat, dropoffLng: acceptedDestination.lng } as never);
+      }
+    }, 10000) as unknown as number;
+  }, [acceptedDestination, acceptedRequestId, providerLocation, calculateDistance, clearArrivalCheck, navigation]);
+
+  const handleChooseInApp = useCallback(() => {
+    setNavChoiceVisible(false);
+    if (!acceptedRequestId) return;
+    // navigate to in-app ProviderTrip (already prepares in-app route)
+    navigation.navigate('ProviderTrip' as never, { requestId: acceptedRequestId, storeLat: undefined, storeLng: undefined, dropoffLat: acceptedDestination?.lat, dropoffLng: acceptedDestination?.lng } as never);
+  }, [acceptedRequestId, acceptedDestination, navigation]);
+
   const renderOrder = ({ item: order }: { item: Task }) => {
     // Mock current location (Sandton, Johannesburg)
     const currentLat = -26.2041;
@@ -1118,13 +1158,13 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
 
         <View style={styles.orderDetails}>
           <View style={styles.detailRow}>
-            <Ionicons name="location-outline" size={16} color="#666666" />
+            <Ionicons name="location-outline" size={16} color={Colors.text.secondary} />
             <Text style={styles.detailText}>
               {order.city}, {order.province} • {distance}km away
             </Text>
           </View>
           <View style={styles.detailRow}>
-            <Ionicons name="time-outline" size={16} color="#666666" />
+            <Ionicons name="time-outline" size={16} color={Colors.text.secondary} />
             <Text style={styles.detailText}>
               {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
@@ -1581,8 +1621,11 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
                 console.log('[realtime] request not confirmed; ignoring');
                 return;
               }
-              // Only pop while online (use ref to avoid stale closure)
-              if (!onlineRef.current) { console.log('[realtime] isOnline=false (ref); skipping'); return; }
+              // Only pop while online (prefer ref to avoid stale closure, but also check state)
+              if (!(onlineRef.current || isOnline)) {
+                console.log('[realtime] offline gating; ref=false, state=false — skipping');
+                return;
+              }
               // Basic proximity filter if we have a provider location
               const plat = providerLocation?.latitude;
               const plng = providerLocation?.longitude;
@@ -1982,7 +2025,7 @@ const ProviderDashboard: React.FC<Props> = ({ navigation }): JSX.Element => {
                 style={styles.profileButton}
                 onPress={() => navigation.navigate('Profile')}
               >
-                <Ionicons name="person" size={24} color="#333333" />
+                <Ionicons name="person" size={24} color={Colors.text.primary} />
               </TouchableOpacity>
             </View>
           </View>

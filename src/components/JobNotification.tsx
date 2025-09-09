@@ -8,6 +8,7 @@ import {
   PanResponder,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../styles/theme';
 import { formatCurrencySafe } from '../utils/format';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { googleMaps } from '../lib/googleMaps';
@@ -214,7 +215,7 @@ const JobNotification: React.FC<JobNotificationProps> = ({
             <Ionicons name="time-outline" size={16} color="#666" />
             <Text style={{ marginLeft: 6, color: '#666', fontWeight: '600' }}>{secondsLeft}s</Text>
             <TouchableOpacity onPress={onDismiss} style={[styles.closeButton, { marginLeft: 12 }]}>
-              <Ionicons name="close" size={20} color="#666666" />
+              <Ionicons name="close" size={20} color={Colors.text.secondary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -274,7 +275,7 @@ const JobNotification: React.FC<JobNotificationProps> = ({
 
           <View style={styles.orderMeta}>
             <View style={styles.metaItem}>
-              <Ionicons name="location" size={16} color="#666666" />
+              <Ionicons name="location" size={16} color={Colors.text.secondary} />
               <Text style={styles.metaText}>
                 {order.city} • {order.distance}km away
               </Text>
@@ -359,7 +360,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     fontFamily: 'Poppins-Bold',
   },
   closeButton: {
@@ -375,13 +376,13 @@ const styles = StyleSheet.create({
   orderTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     marginBottom: 4,
     fontFamily: 'Poppins-Bold',
   },
   orderDescription: {
     fontSize: 14,
-    color: '#666666',
+    color: Colors.text.secondary,
     lineHeight: 20,
     fontFamily: 'Poppins-Regular',
   },
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 14,
-    color: '#666666',
+    color: Colors.text.secondary,
     marginLeft: 6,
     fontFamily: 'Poppins-Regular',
   },
@@ -406,7 +407,7 @@ const styles = StyleSheet.create({
   },
   dismissButton: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background.base,
     borderRadius: 8,
     paddingVertical: 12,
     alignItems: 'center',
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
   },
   dismissText: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontWeight: '600',
     fontFamily: 'Poppins-SemiBold',
   },

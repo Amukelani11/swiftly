@@ -17,6 +17,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, UserRole } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { Colors } from '../styles/theme';
 
 type AuthScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Auth'>;
 type AuthScreenRouteProp = RouteProp<RootStackParamList, 'Auth'>;
@@ -268,10 +269,10 @@ const AuthScreen: React.FC<Props> = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F5" />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background.base} />
       
       <LinearGradient
-        colors={['#F5F5F5', '#FFFFFF']}
+        colors={[Colors.background.base, '#FFFFFF']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -442,7 +443,7 @@ const AuthScreen: React.FC<Props> = ({ navigation, route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.base,
   },
   gradient: {
     position: 'absolute',
@@ -463,14 +464,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     textAlign: 'center',
     marginBottom: 8,
     fontFamily: 'Poppins-Bold',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     textAlign: 'center',
     fontFamily: 'Poppins-Regular',
   },
@@ -486,26 +487,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Poppins-Regular',
     borderWidth: 1,
-    borderColor: '#E5E5E5',
+    borderColor: Colors.gray[300],
   },
   inputError: {
     borderColor: '#FF6B6B',
     borderWidth: 2,
   },
   errorText: {
-    color: '#FF6B6B',
+    color: Colors.error,
     fontSize: 14,
     fontFamily: 'Poppins-Regular',
     marginTop: 4,
     marginLeft: 4,
   },
   primaryButton: {
-    backgroundColor: '#FFC857',
+    backgroundColor: Colors.secondary,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
-    shadowColor: '#FFC857',
+    shadowColor: Colors.secondary,
     shadowOffset: {
       width: 0,
       height: 4,
@@ -529,12 +530,12 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontSize: 16,
-    color: '#666666',
+    color: Colors.text.secondary,
     fontFamily: 'Poppins-Regular',
   },
   toggleButton: {
     fontSize: 16,
-    color: '#6CA0DC',
+    color: Colors.secondary,
     fontFamily: 'Poppins-Medium',
   },
   backButton: {
@@ -544,7 +545,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#6CA0DC',
+    color: Colors.secondary,
     fontFamily: 'Poppins-Medium',
   },
   verificationHeader: {
@@ -554,7 +555,7 @@ const styles = StyleSheet.create({
   verificationTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333333',
+    color: Colors.text.primary,
     textAlign: 'center',
     marginBottom: 8,
     fontFamily: 'Poppins-Bold',
@@ -610,4 +611,3 @@ const styles = StyleSheet.create({
 });
 
 export default AuthScreen;
-

@@ -297,7 +297,7 @@ const LiveMap: React.FC<LiveMapProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background.base,
   },
   mapContainer: {
     flex: 1,
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
 
   dataDisplay: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Colors.background.base,
     borderRadius: 16,
     padding: 20,
     margin: 10,
@@ -576,7 +576,6 @@ const styles = StyleSheet.create({
 });
 
 export default LiveMap;
-
 
 
 

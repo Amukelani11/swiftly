@@ -1,5 +1,6 @@
 import { NativeModules, Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
+import mapbox from '../lib/mapbox';
 
 type LatLng = { lat: number; lng: number };
 
@@ -15,10 +16,12 @@ const linkError = new Error(
 );
 
 export async function startTurnByTurn(params: StartNavigationParams) {
-  // Native side should implement: NavigationModule.startNavigation(params)
-  const mod = (NativeModules as any)?.NavigationModule;
-  if (!mod?.startNavigation) throw linkError;
-  return mod.startNavigation(params);
+  // We no longer use native Google Navigation; use Mapbox Directions via edge or client
+  // This function will return directions data for in-app rendering
+  const origin = params.origin;
+  const dest = params.destination;
+  const waypoints = params.waypoints;
+  return mapbox.mapboxDirections(origin, dest, waypoints);
 }
 
 export function isNativeNavigationAvailable(): boolean {
@@ -32,31 +35,9 @@ export function isNativeNavigationAvailable(): boolean {
 // Helper function to geocode addresses using the edge function
 export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number }> {
   try {
-    const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
-      body: {
-        path: 'geocode',
-        params: {
-          address: address,
-          region: 'za' // South Africa
-        }
-      }
-    });
-
-    if (error) {
-      throw new Error(`Geocoding error: ${error.message}`);
-    }
-
-    if (data.status !== 'OK' || !data.results || data.results.length === 0) {
-      throw new Error(`Geocoding failed: ${data.status}`);
-    }
-
-    const location = data.results[0].geometry.location;
-    return {
-      lat: location.lat,
-      lng: location.lng
-    };
+    return await mapbox.mapboxGeocode(address);
   } catch (error) {
-    console.error('Geocoding failed:', error);
+    console.error('Geocoding failed (mapbox):', error);
     throw error;
   }
 }
@@ -68,38 +49,11 @@ export async function getDirections(
   options?: { mode?: string; waypoints?: LatLng[] }
 ): Promise<any> {
   try {
-    const params: any = {
-      origin: `${origin.lat},${origin.lng}`,
-      destination: `${destination.lat},${destination.lng}`,
-      mode: options?.mode || 'driving',
-      region: 'za'
-    };
-
-    // Add waypoints if provided
-    if (options?.waypoints && options.waypoints.length > 0) {
-      params.waypoints = options.waypoints
-        .map(wp => `${wp.lat},${wp.lng}`)
-        .join('|');
-    }
-
-    const { data, error } = await supabase.functions.invoke('google-maps-proxy', {
-      body: {
-        path: 'directions',
-        params: params
-      }
-    });
-
-    if (error) {
-      throw new Error(`Directions error: ${error.message}`);
-    }
-
-    if (data.status !== 'OK' || !data.routes || data.routes.length === 0) {
-      throw new Error(`Directions failed: ${data.status}`);
-    }
-
-    return data;
+    // Use Mapbox directions directly
+    const resp = await mapbox.mapboxDirections(origin, destination, options?.waypoints);
+    return resp;
   } catch (error) {
-    console.error('Directions failed:', error);
+    console.error('Directions failed (mapbox):', error);
     throw error;
   }
 }

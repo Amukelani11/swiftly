@@ -23,7 +23,8 @@ EXPO_TOKEN=your_expo_access_token
 2. Sign in to your Expo account
 3. Go to Account Settings → Access Tokens
 4. Create a new access token
-5. Copy the token and add it as `EXPO_TOKEN` in Codemagic
+5. **Copy this token**: `XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp`
+6. Add it as `EXPO_TOKEN` in Codemagic environment variables
 
 ### Optional (for publishing)
 
@@ -53,7 +54,11 @@ APP_STORE_CONNECT_ISSUER_ID=your_issuer_id
    - Go to your Codemagic dashboard
    - Select your project
    - Click "Check for configuration file" (should find `codemagic.yaml`)
-   - Set up environment variables as listed above
+   - **CRITICAL**: Go to Environment Variables and add:
+     - Variable name: `EXPO_TOKEN`
+     - Variable value: `XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp`
+     - Check "Secure" box
+   - Optionally add other variables as listed above
 
 3. **Run a build**:
    - Click "Start new build"

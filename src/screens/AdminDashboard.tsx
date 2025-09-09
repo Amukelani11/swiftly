@@ -132,10 +132,10 @@ export default function AdminDashboard() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.gray100} />
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background.base} />
       
       <LinearGradient
-        colors={['#F5F5F5', '#FFFFFF']}
+        colors={[Colors.background.base, '#FFFFFF']}
         style={styles.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}
@@ -278,7 +278,7 @@ export default function AdminDashboard() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.background.base,
   },
   gradient: {
     position: 'absolute',
@@ -302,12 +302,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: Colors.text.primary,
     fontFamily: 'Poppins-Bold',
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: Colors.text.secondary,
     marginTop: 4,
     fontFamily: 'Poppins-Regular',
   },
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.white,
     borderRadius: 12,
     padding: 16,
     marginHorizontal: 4,
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#6CA0DC',
+    color: Colors.secondary,
     fontFamily: 'Poppins-Bold',
   },
   statLabel: {
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   filterTabActive: {
-    backgroundColor: '#6CA0DC',
+    backgroundColor: Colors.secondary,
   },
   filterText: {
     fontSize: 14,
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
   },
   userRole: {
     fontSize: 12,
-    color: '#6CA0DC',
+    color: Colors.secondary,
     fontFamily: 'Poppins-Medium',
   },
   statusContainer: {
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.text.secondary,
     marginBottom: 4,
     fontFamily: 'Poppins-Regular',
   },
@@ -480,10 +480,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   approveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: Colors.secondary,
   },
   rejectButton: {
-    backgroundColor: '#F44336',
+    backgroundColor: Colors.error,
   },
   actionButtonText: {
     fontSize: 14,
@@ -493,7 +493,3 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-SemiBold',
   },
 });
-
-
-
-

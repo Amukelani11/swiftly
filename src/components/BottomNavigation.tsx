@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '../styles/theme';
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -94,12 +95,12 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabPre
           <Ionicons
             name={activeTab === tab.id ? tab.activeIcon : tab.icon}
             size={24}
-            color={activeTab === tab.id ? '#FFC857' : '#666666'}
+            color={activeTab === tab.id ? Colors.secondary : Colors.gray[300]}
           />
           <Text
             style={[
               styles.tabLabel,
-              { color: activeTab === tab.id ? '#FFC857' : '#666666' }
+              { color: activeTab === tab.id ? Colors.secondary : Colors.gray[300] }
             ]}
           >
             {tab.label}
@@ -113,9 +114,9 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabPre
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: '#F8FAFC',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
+    backgroundColor: Colors.primary,
+    borderTopWidth: 0,
+    borderTopColor: Colors.primary,
     paddingBottom: 20,
     paddingTop: 12,
     shadowColor: '#000',
@@ -137,6 +138,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     fontFamily: 'Poppins-Medium',
+    // Keep label readable on dark teal background
+    color: Colors.white,
   },
 });
 

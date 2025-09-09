@@ -5,6 +5,7 @@ workflows:
     environment:
       node: 20
       java: 17
+      EXPO_USE_COMMUNITY_AUTOLINKING: 1
     triggering:
       events:
         - push
@@ -24,7 +25,10 @@ workflows:
       - name: Clean autolinking cache
         script: |
           rm -rf android/app/build/generated/autolinking
+          rm -rf android/app/build/generated/source
           rm -rf node_modules/.cache
+          rm -rf .expo
+          rm -rf android/.gradle
       - name: Prebuild native (Expo → Android)
         script: npx expo prebuild --platform android --no-install
       - name: Build debug APK
@@ -73,6 +77,7 @@ workflows:
     environment:
       node: 20
       java: 17
+      EXPO_USE_COMMUNITY_AUTOLINKING: 1
     triggering:
       events:
         - push
@@ -94,7 +99,10 @@ workflows:
       - name: Clean autolinking cache
         script: |
           rm -rf android/app/build/generated/autolinking
+          rm -rf android/app/build/generated/source
           rm -rf node_modules/.cache
+          rm -rf .expo
+          rm -rf android/.gradle
       - name: Prebuild native (Expo → Android)
         script: npx expo prebuild --platform android --no-install
       - name: Setup keystore (if provided)

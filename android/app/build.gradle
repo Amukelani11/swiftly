@@ -159,6 +159,9 @@ dependencies {
     implementation project(':expo')
     implementation project(':expo-modules-core')
 
+    // Force include Expo modules package for autolinking
+    implementation("host.exp.exponent:expo-modules-core:+")
+
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
     def isWebpAnimatedEnabled = (findProperty('expo.webp.animated') ?: "") == "true";

@@ -7,7 +7,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "start:env": "dotenv -e .env -- expo start"
+    "start:env": "dotenv -e .env -- expo start",
+    "claude": "pnpm dlx @anthropic-ai/claude-code"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.3",

@@ -1,14 +1,10 @@
 workflows:
-  android-development:
-    name: Android Development Build
+  android-debug:
+    name: Android Debug Build (No EAS)
     max_build_duration: 120
     environment:
-      node: latest
+      node: 20
       java: 17
-      xcode: latest
-      cocoapods: default
-    environment_variables:
-      EXPO_TOKEN: XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp
     triggering:
       events:
         - push
@@ -18,36 +14,29 @@ workflows:
           include: true
     scripts:
       - name: Install dependencies
-        script: |
-          npm install -g @expo/cli eas-cli
-          npm install
+        script: npm ci
       - name: Set up environment variables
         script: |
           # Set defaults if variables are not provided
           echo "REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL:-your_supabase_url_here}" >> .env
           echo "REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY:-your_supabase_key_here}" >> .env
           echo "GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-your_maps_key_here}" >> .env
-      - name: Build Android development APK
+      - name: Prebuild native (Expo → Android)
+        script: npx expo prebuild --platform android --no-install
+      - name: Build debug APK
         script: |
-          npx expo install --fix
-          echo "Logging into EAS..."
-          npx eas login --access-token "$EXPO_TOKEN"
-          npx eas build --platform android --profile development --non-interactive
+          cd android
+          ./gradlew assembleDebug
     artifacts:
-      - build/**
-      - "*.apk"
-      - "*.aab"
+      - android/app/build/outputs/apk/debug/app-debug.apk
 
-  ios-development:
-    name: iOS Development Build
+  ios-debug:
+    name: iOS Debug Build (No EAS)
     max_build_duration: 120
     environment:
-      node: latest
-      java: 17
+      node: 20
       xcode: latest
       cocoapods: default
-    environment_variables:
-      EXPO_TOKEN: XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp
     triggering:
       events:
         - push
@@ -55,44 +44,31 @@ workflows:
       branch_patterns:
         - pattern: "*"
           include: true
-          source: true
     scripts:
       - name: Install dependencies
-        script: |
-          npm install -g @expo/cli eas-cli
-          npm install
+        script: npm ci
       - name: Set up environment variables
         script: |
           # Set defaults if variables are not provided
           echo "REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL:-your_supabase_url_here}" >> .env
           echo "REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY:-your_supabase_key_here}" >> .env
           echo "GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-your_maps_key_here}" >> .env
-      - name: Build iOS development app
+      - name: Prebuild native (Expo → iOS)
+        script: npx expo prebuild --platform ios --no-install
+      - name: Build debug iOS app
         script: |
-          npx expo install --fix
-          echo "Logging into EAS..."
-          npx eas login --access-token "$EXPO_TOKEN"
-          npx eas build --platform ios --profile development --non-interactive
+          cd ios
+          pod install
+          xcodebuild -workspace Swiftly.xcworkspace -scheme Swiftly -configuration Debug -destination generic/platform=iOS -archivePath build/Swiftly.xcarchive archive
     artifacts:
-      - build/**
-      - "*.ipa"
-    # publishing:
-    #   app_store_connect:
-    #     api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-    #     key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-    #     issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-    #     submit_to_testflight: false
+      - ios/build/Swiftly.xcarchive
 
-  android-production:
-    name: Android Production Build
+  android-release:
+    name: Android Release Build (No EAS)
     max_build_duration: 120
     environment:
-      node: latest
+      node: 20
       java: 17
-      xcode: latest
-      cocoapods: default
-    environment_variables:
-      EXPO_TOKEN: XFqyR8tcNlFCWvYfxS328f0BDTI_OXNbdJWnKwfp
     triggering:
       events:
         - push
@@ -104,22 +80,32 @@ workflows:
           include: true
     scripts:
       - name: Install dependencies
-        script: |
-          npm install -g @expo/cli eas-cli
-          npm install
+        script: npm ci
       - name: Set up environment variables
         script: |
           # Set defaults if variables are not provided
           echo "REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL:-your_supabase_url_here}" >> .env
           echo "REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY:-your_supabase_key_here}" >> .env
           echo "GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-your_maps_key_here}" >> .env
-      - name: Build Android production AAB
+      - name: Prebuild native (Expo → Android)
+        script: npx expo prebuild --platform android --no-install
+      - name: Setup keystore (if provided)
         script: |
-          npx expo install --fix
-          echo "Logging into EAS..."
-          npx eas login --access-token "$EXPO_TOKEN"
-          npx eas build --platform android --profile production --non-interactive
+          # Only setup keystore if variables are provided
+          if [ ! -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "Setting up keystore for signed build..."
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/keystore.jks
+            cat >> android/gradle.properties << EOF
+            MYAPP_UPLOAD_STORE_FILE=keystore.jks
+            MYAPP_UPLOAD_STORE_PASSWORD=$ANDROID_KEYSTORE_PASSWORD
+            MYAPP_UPLOAD_KEY_ALIAS=$ANDROID_KEY_ALIAS
+            MYAPP_UPLOAD_KEY_PASSWORD=$ANDROID_KEY_ALIAS_PASSWORD
+            EOF
+          fi
+      - name: Build release AAB
+        script: |
+          cd android
+          ./gradlew bundleRelease
     artifacts:
-      - build/**
-      - "*.apk"
-      - "*.aab"
+      - android/app/build/outputs/bundle/release/app-release.aab
+      - android/app/build/outputs/apk/release/app-release.apk

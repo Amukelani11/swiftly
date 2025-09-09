@@ -7,9 +7,6 @@ workflows:
       java: 17
       xcode: latest
       cocoapods: default
-    cache_paths:
-      - ~/.gradle
-      - node_modules
     triggering:
       events:
         - push
@@ -49,10 +46,6 @@ workflows:
       java: 17
       xcode: latest
       cocoapods: default
-    cache_paths:
-      - ~/.gradle
-      - node_modules
-      - ~/Library/Caches/CocoaPods
     triggering:
       events:
         - push
@@ -93,9 +86,6 @@ workflows:
       java: 17
       xcode: latest
       cocoapods: default
-    cache_paths:
-      - ~/.gradle
-      - node_modules
     triggering:
       events:
         - push

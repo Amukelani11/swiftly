@@ -49,5 +49,6 @@
         "dotenv-cli": "^7.3.0",
         "typescript": "~5.8.3"
     },
-    "private": true
+    "private": true,
+    "packageManager": "pnpm@10.6.5"
 }

@@ -14,15 +14,7 @@ workflows:
           include: true
     scripts:
       - name: Install dependencies
-        script: |
-          if command -v pnpm >/dev/null 2>&1; then
-            echo "pnpm is already installed"
-            pnpm install --frozen-lockfile
-          else
-            echo "Installing pnpm..."
-            npm install -g pnpm
-            pnpm install --frozen-lockfile
-          fi
+        script: pnpm install --frozen-lockfile
       - name: Set up environment variables
         script: |
           # Set defaults if variables are not provided
@@ -54,15 +46,7 @@ workflows:
           include: true
     scripts:
       - name: Install dependencies
-        script: |
-          if command -v pnpm >/dev/null 2>&1; then
-            echo "pnpm is already installed"
-            pnpm install --frozen-lockfile
-          else
-            echo "Installing pnpm..."
-            npm install -g pnpm
-            pnpm install --frozen-lockfile
-          fi
+        script: pnpm install --frozen-lockfile
       - name: Set up environment variables
         script: |
           # Set defaults if variables are not provided
@@ -96,15 +80,7 @@ workflows:
           include: true
     scripts:
       - name: Install dependencies
-        script: |
-          if command -v pnpm >/dev/null 2>&1; then
-            echo "pnpm is already installed"
-            pnpm install --frozen-lockfile
-          else
-            echo "Installing pnpm..."
-            npm install -g pnpm
-            pnpm install --frozen-lockfile
-          fi
+        script: pnpm install --frozen-lockfile
       - name: Set up environment variables
         script: |
           # Set defaults if variables are not provided

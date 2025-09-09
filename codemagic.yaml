@@ -1,0 +1,133 @@
+workflows:
+  android-development:
+    name: Android Development Build
+    max_build_duration: 120
+    environment:
+      node: latest
+      java: 17
+      xcode: latest
+      cocoapods: default
+    cache_paths:
+      - ~/.gradle
+      - node_modules
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: "*"
+          include: true
+          source: true
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install -g @expo/cli eas-cli
+          npm install
+      - name: Set up environment variables
+        script: |
+          echo "REACT_APP_SUPABASE_URL=$REACT_APP_SUPABASE_URL" >> .env
+          echo "REACT_APP_SUPABASE_ANON_KEY=$REACT_APP_SUPABASE_ANON_KEY" >> .env
+          echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY" >> .env
+      - name: Build Android development APK
+        script: |
+          npx expo install --fix
+          npx eas build --platform android --profile development --non-interactive
+    artifacts:
+      - build/**
+      - "*.apk"
+      - "*.aab"
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+
+  ios-development:
+    name: iOS Development Build
+    max_build_duration: 120
+    environment:
+      node: latest
+      java: 17
+      xcode: latest
+      cocoapods: default
+    cache_paths:
+      - ~/.gradle
+      - node_modules
+      - ~/Library/Caches/CocoaPods
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: "*"
+          include: true
+          source: true
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install -g @expo/cli eas-cli
+          npm install
+      - name: Set up environment variables
+        script: |
+          echo "REACT_APP_SUPABASE_URL=$REACT_APP_SUPABASE_URL" >> .env
+          echo "REACT_APP_SUPABASE_ANON_KEY=$REACT_APP_SUPABASE_ANON_KEY" >> .env
+          echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY" >> .env
+      - name: Build iOS development app
+        script: |
+          npx expo install --fix
+          npx eas build --platform ios --profile development --non-interactive
+    artifacts:
+      - build/**
+      - "*.ipa"
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: false
+
+  android-production:
+    name: Android Production Build
+    max_build_duration: 120
+    environment:
+      node: latest
+      java: 17
+      xcode: latest
+      cocoapods: default
+    cache_paths:
+      - ~/.gradle
+      - node_modules
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: "main"
+          include: true
+          source: true
+      tag_patterns:
+        - pattern: "v*"
+          include: true
+          source: false
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm install -g @expo/cli eas-cli
+          npm install
+      - name: Set up environment variables
+        script: |
+          echo "REACT_APP_SUPABASE_URL=$REACT_APP_SUPABASE_URL" >> .env
+          echo "REACT_APP_SUPABASE_ANON_KEY=$REACT_APP_SUPABASE_ANON_KEY" >> .env
+          echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY" >> .env
+      - name: Build Android production AAB
+        script: |
+          npx expo install --fix
+          npx eas build --platform android --profile production --non-interactive
+    artifacts:
+      - build/**
+      - "*.apk"
+      - "*.aab"
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: production
+        in_app_update_priority: 3
+        rollout_fraction: 0.1

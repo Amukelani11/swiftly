@@ -14,8 +14,16 @@ Add these to your Codemagic project settings:
 REACT_APP_SUPABASE_URL=your_supabase_url
 REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key
 GOOGLE_MAPS_API_KEY=your_google_maps_api_key
-EAS_PROJECT_ID=your_eas_project_id
+EXPO_TOKEN=your_expo_access_token
 ```
+
+#### Getting Your EXPO_TOKEN
+
+1. Go to [expo.dev](https://expo.dev)
+2. Sign in to your Expo account
+3. Go to Account Settings → Access Tokens
+4. Create a new access token
+5. Copy the token and add it as `EXPO_TOKEN` in Codemagic
 
 ### Optional (for publishing)
 

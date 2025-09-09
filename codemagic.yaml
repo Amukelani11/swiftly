@@ -28,6 +28,8 @@ workflows:
       - name: Build Android development APK
         script: |
           npx expo install --fix
+          echo "Logging into EAS..."
+          npx eas login --access-token "$EXPO_TOKEN"
           npx eas build --platform android --profile development --non-interactive
     artifacts:
       - build/**
@@ -64,6 +66,8 @@ workflows:
       - name: Build iOS development app
         script: |
           npx expo install --fix
+          echo "Logging into EAS..."
+          npx eas login --access-token "$EXPO_TOKEN"
           npx eas build --platform ios --profile development --non-interactive
     artifacts:
       - build/**
@@ -106,6 +110,8 @@ workflows:
       - name: Build Android production AAB
         script: |
           npx expo install --fix
+          echo "Logging into EAS..."
+          npx eas login --access-token "$EXPO_TOKEN"
           npx eas build --platform android --profile production --non-interactive
     artifacts:
       - build/**

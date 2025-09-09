@@ -5,7 +5,6 @@ node_modules/
 dist/
 build/
 *.log
-pnpm-lock.yaml
 .pnp.*
 **/coverage/
 /.vscode/

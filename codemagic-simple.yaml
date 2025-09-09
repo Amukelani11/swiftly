@@ -10,9 +10,10 @@ workflows:
         script: npm install
       - name: Setup environment
         script: |
-          echo "REACT_APP_SUPABASE_URL=$REACT_APP_SUPABASE_URL" >> .env
-          echo "REACT_APP_SUPABASE_ANON_KEY=$REACT_APP_SUPABASE_ANON_KEY" >> .env
-          echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY" >> .env
+          # Set defaults if variables are not provided
+          echo "REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL:-your_supabase_url_here}" >> .env
+          echo "REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY:-your_supabase_key_here}" >> .env
+          echo "GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-your_maps_key_here}" >> .env
       - name: Build Android APK
         script: npx expo build:android --type apk --no-publish
     artifacts:
@@ -29,9 +30,10 @@ workflows:
         script: npm install
       - name: Setup environment
         script: |
-          echo "REACT_APP_SUPABASE_URL=$REACT_APP_SUPABASE_URL" >> .env
-          echo "REACT_APP_SUPABASE_ANON_KEY=$REACT_APP_SUPABASE_ANON_KEY" >> .env
-          echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY" >> .env
+          # Set defaults if variables are not provided
+          echo "REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL:-your_supabase_url_here}" >> .env
+          echo "REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY:-your_supabase_key_here}" >> .env
+          echo "GOOGLE_MAPS_API_KEY=${GOOGLE_MAPS_API_KEY:-your_maps_key_here}" >> .env
       - name: Build Android AAB
         script: npx expo build:android --type app-bundle --no-publish
     artifacts:

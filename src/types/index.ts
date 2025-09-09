@@ -161,9 +161,11 @@ export type RootStackParamList = {
   CreateTask: undefined;
   CreateShoppingList: { selectedStore?: any; selectedCategory?: any; promotion?: any };
   StoreSelection: { items: any[]; selectedStore?: any };
+  DeliveryDetails: { items: any[]; selectedStore?: any };
   JobFeed: undefined;
   Settings: undefined;
   ProviderTrip: { requestId: string; storeLat?: number; storeLng?: number; dropoffLat?: number; dropoffLng?: number; title?: string; description?: string };
+  WebNavigation: { url: string; title?: string };
 };
 
 export interface ShoppingList {

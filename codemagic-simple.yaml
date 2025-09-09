@@ -1,0 +1,36 @@
+workflows:
+  android-dev:
+    name: Android Development Build
+    environment:
+      node: latest
+      java: 17
+    scripts:
+      - name: Install dependencies
+        script: npm install
+      - name: Setup environment
+        script: |
+          echo "REACT_APP_SUPABASE_URL=$REACT_APP_SUPABASE_URL" >> .env
+          echo "REACT_APP_SUPABASE_ANON_KEY=$REACT_APP_SUPABASE_ANON_KEY" >> .env
+          echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY" >> .env
+      - name: Build Android APK
+        script: npx expo build:android --type apk --no-publish
+    artifacts:
+      - "*.apk"
+
+  android-production:
+    name: Android Production Build
+    environment:
+      node: latest
+      java: 17
+    scripts:
+      - name: Install dependencies
+        script: npm install
+      - name: Setup environment
+        script: |
+          echo "REACT_APP_SUPABASE_URL=$REACT_APP_SUPABASE_URL" >> .env
+          echo "REACT_APP_SUPABASE_ANON_KEY=$REACT_APP_SUPABASE_ANON_KEY" >> .env
+          echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY" >> .env
+      - name: Build Android AAB
+        script: npx expo build:android --type app-bundle --no-publish
+    artifacts:
+      - "*.aab"

@@ -35,6 +35,21 @@ A modern, world-class mobile application built with React Native and Expo that c
 - **Styling**: Custom design system with consistent spacing, colors, and typography
 - **Font**: Poppins (Google Fonts)
 - **Icons**: Expo Vector Icons
+- **CI/CD**: Codemagic (see `codemagic.yaml`)
+- **Build Tool**: Expo Application Services (EAS)
+
+## 🚀 Deployment & CI/CD
+
+### Codemagic Setup
+1. Connect your repository to [Codemagic](https://codemagic.io)
+2. Add the `codemagic.yaml` file to your project root
+3. Set up environment variables in Codemagic dashboard:
+   - `REACT_APP_SUPABASE_URL`
+   - `REACT_APP_SUPABASE_ANON_KEY`
+   - `GOOGLE_MAPS_API_KEY`
+4. Push and let Codemagic detect the configuration automatically
+
+See `CODEMAGIC_README.md` for detailed setup instructions.
 
 ## 📱 Design System
 

@@ -1,15 +1,33 @@
 node_modules/
 .expo/
 .env
+.env.local
 dist/
 build/
-android/
-ios/
 *.log
 pnpm-lock.yaml
 .pnp.*
 **/coverage/
 /.vscode/
+
+# React Native / Expo
+.expo-shared/
+*.jks
+*.keystore
+*.p12
+*.p8
+*.cer
+.DS_Store
+
+# Generated native directories (uncomment if you want to commit them)
+# android/
+# ios/
+
+# Temporary build files
+*.apk
+*.aab
+*.ipa
+*.app
 
 
 

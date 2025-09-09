@@ -18,9 +18,6 @@ try {
 
 export default ({ config: expoConfig }) => {
   const API_KEY = process.env.GOOGLE_MAPS_API_KEY || envVars.GOOGLE_MAPS_API_KEY;
-  if (!API_KEY) {
-    console.warn("\n[config] GOOGLE_MAPS_API_KEY is not set. Maps may render blank tiles.");
-  }
   return {
     ...expoConfig,
     ios: {
@@ -55,7 +52,7 @@ export default ({ config: expoConfig }) => {
       ...(expoConfig.plugins || []).filter(plugin => {
         // Filter out any maps plugins to prevent conflicts
         return !Array.isArray(plugin) || !['expo-maps', 'react-native-maps'].includes(plugin[0]);
-      }),
+      })
     ],
     extra: {
       REACT_APP_SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL || envVars.REACT_APP_SUPABASE_URL,

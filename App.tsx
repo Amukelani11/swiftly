@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { Alert } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
+import Constants from 'expo-constants';
 
 // Import screens
 import WelcomeScreen from './src/screens/WelcomeScreen';
@@ -35,6 +36,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 function AppContent() {
   const { session, loading } = useAuth();
   const navigationRef = useRef<any>(null);
+
 
   // Handle navigation when session changes
   useEffect(() => {
@@ -249,7 +251,6 @@ function AppContent() {
             <Stack.Screen name="ProviderDashboard" component={ProviderDashboard} />
             <Stack.Screen name="ProviderTrip" component={ProviderTrip} />
             <Stack.Screen name="Profile" component={Profile} />
-            <Stack.Screen name="AllStores" component={AllStores} />
             <Stack.Screen name="Wallet" component={Wallet} />
             <Stack.Screen name="JobFeed" component={JobFeed} />
             <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -273,7 +274,6 @@ function AppContent() {
                   <Stack.Screen name="ProviderTrip" component={ProviderTrip} />
                    <Stack.Screen name="Profile" component={Profile} />
                    <Stack.Screen name="AllStores" component={AllStores} />
-                   <Stack.Screen name="Wallet" component={Wallet} />
                      <Stack.Screen name="JobFeed" component={JobFeed} />
                    </>
                  )}

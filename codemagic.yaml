@@ -24,17 +24,21 @@ workflows:
       - name: Bundle JS for debug (offline)
         script: |
           # Clean Metro cache first
-          rm -rf .metro-cache node_modules/.cache/metro*
-          ENTRY="index.js"
-          [ -f "index.ts" ] && ENTRY="index.ts"
+          rm -rf .metro-cache node_modules/.cache/metro* android/app/build/generated/autolinking
+
+          # Ensure assets directory exists
           mkdir -p android/app/src/main/assets
+
+          # Bundle with explicit paths and no dev mode
           npx react-native bundle \
             --platform android \
             --dev false \
-            --entry-file "$ENTRY" \
+            --minify false \
+            --entry-file index.js \
             --bundle-output android/app/src/main/assets/index.android.bundle \
             --assets-dest android/app/src/main/res \
-            --reset-cache
+            --reset-cache \
+            --verbose
 
       - name: Build debug APK
         script: |
@@ -94,8 +98,29 @@ workflows:
           corepack prepare pnpm@latest --activate
       - name: Install dependencies
         script: pnpm install --frozen-lockfile
+      - name: Clean autolinking cache
+        script: |
+          rm -rf android/app/build/generated/autolinking
+          rm -rf node_modules/.cache
       - name: Prebuild native (Expo → Android)
         script: npx expo prebuild --platform android --no-install
+      - name: Bundle JS for release (optimized)
+        script: |
+          # Clean Metro cache first
+          rm -rf .metro-cache node_modules/.cache/metro*
+
+          # Ensure assets directory exists
+          mkdir -p android/app/src/main/assets
+
+          # Bundle with optimization for release
+          npx react-native bundle \
+            --platform android \
+            --dev false \
+            --minify true \
+            --entry-file index.js \
+            --bundle-output android/app/src/main/assets/index.android.bundle \
+            --assets-dest android/app/src/main/res \
+            --reset-cache
       - name: Setup keystore (if provided)
         script: |
           if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then

@@ -14,7 +14,9 @@ workflows:
           include: true
     scripts:
       - name: Install dependencies
-        script: npm ci
+        script: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
       - name: Set up environment variables
         script: |
           # Set defaults if variables are not provided
@@ -46,7 +48,9 @@ workflows:
           include: true
     scripts:
       - name: Install dependencies
-        script: npm ci
+        script: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
       - name: Set up environment variables
         script: |
           # Set defaults if variables are not provided
@@ -80,7 +84,9 @@ workflows:
           include: true
     scripts:
       - name: Install dependencies
-        script: npm ci
+        script: |
+          npm install -g pnpm
+          pnpm install --frozen-lockfile
       - name: Set up environment variables
         script: |
           # Set defaults if variables are not provided

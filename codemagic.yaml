@@ -23,6 +23,8 @@ workflows:
       # 👇 NEW: bundle JS so debug APK runs without Metro
       - name: Bundle JS for debug (offline)
         script: |
+          # Clean Metro cache first
+          rm -rf .metro-cache node_modules/.cache/metro*
           ENTRY="index.js"
           [ -f "index.ts" ] && ENTRY="index.ts"
           mkdir -p android/app/src/main/assets
@@ -31,7 +33,8 @@ workflows:
             --dev false \
             --entry-file "$ENTRY" \
             --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res
+            --assets-dest android/app/src/main/res \
+            --reset-cache
 
       - name: Build debug APK
         script: |

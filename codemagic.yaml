@@ -14,7 +14,6 @@ workflows:
       branch_patterns:
         - pattern: "*"
           include: true
-          source: true
     scripts:
       - name: Install dependencies
         script: |
@@ -92,11 +91,9 @@ workflows:
       branch_patterns:
         - pattern: "main"
           include: true
-          source: true
       tag_patterns:
         - pattern: "v*"
           include: true
-          source: false
     scripts:
       - name: Install dependencies
         script: |

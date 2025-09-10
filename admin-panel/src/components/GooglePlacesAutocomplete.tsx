@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { googleMapsAdmin } from '../lib/googleMaps-admin';
+// NOTE: Google Places usage is deprecated in the mobile app. Replace with Mapbox Geocoding
+// API wrapper for admin usage when ready. This component currently stubs network calls.
 
 interface GooglePlacesAutocompleteProps {
   value: string;
@@ -33,9 +34,11 @@ export default function GooglePlacesAutocomplete({
 
   // Debounced search
   useEffect(() => {
-    const timeoutId = setTimeout(async () => {
+    const timeoutId = setTimeout(() => {
       if (value.length > 2) {
-        await searchPlaces(value);
+        // TODO: wire up Mapbox admin autocomplete
+        setSuggestions([]);
+        setShowSuggestions(false);
       } else {
         setSuggestions([]);
         setShowSuggestions(false);
@@ -65,31 +68,12 @@ export default function GooglePlacesAutocomplete({
   const searchPlaces = async (query: string) => {
     if (query.length < 3) return;
 
-    console.log(`🔍 Google Places: Searching for "${query}"...`);
+    // Placeholder implementation until Mapbox admin wrapper is added.
+    console.log(`🔍 Places: Autocomplete is currently disabled; query="${query}"`);
     setLoading(true);
-
-    try {
-      const response = await googleMapsAdmin.getPlaceAutocomplete(query, {
-        types: 'establishment|geocode',
-        components: 'country:za', // South Africa
-      });
-
-      console.log(`🔍 Google Places: Found ${response.predictions?.length || 0} suggestions`);
-
-      if (response.predictions && Array.isArray(response.predictions)) {
-        setSuggestions(response.predictions.slice(0, 5)); // Limit to 5 suggestions
-        setShowSuggestions(true);
-        console.log('✅ Google Places: Autocomplete suggestions loaded');
-      } else {
-        setSuggestions([]);
-        console.log('⚠️ Google Places: No suggestions found');
-      }
-    } catch (error) {
-      console.error('❌ Google Places: Error fetching autocomplete suggestions:', error);
-      setSuggestions([]);
-    } finally {
-      setLoading(false);
-    }
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setLoading(false);
   };
 
   const handleSelectSuggestion = async (prediction: any) => {
@@ -101,52 +85,14 @@ export default function GooglePlacesAutocomplete({
     // Get detailed place information and coordinates
     try {
       setLoading(true);
-      console.log('🔍 Google Places: Getting coordinates for selected address...');
-      console.log(`🔍 Google Places: Address: "${fullAddress}"`);
-
-      const geocodeResponse = await googleMapsAdmin.geocodeAddress(fullAddress);
-
-      if (geocodeResponse.results && geocodeResponse.results.length > 0) {
-        const result = geocodeResponse.results[0];
-        const location = result.geometry.location;
-
-        console.log('🔍 Google Places: Geocoding successful!');
-        console.log(`🔍 Google Places: Coordinates: ${location.lat.toFixed(6)}, ${location.lng.toFixed(6)}`);
-
-        // Extract city and province from address components
-        const addressComponents = result.address_components;
-        let city = '';
-        let province = '';
-
-        addressComponents.forEach((component: any) => {
-          if (component.types.includes('locality')) {
-            city = component.long_name;
-            console.log(`🔍 Google Places: City: ${city}`);
-          }
-          if (component.types.includes('administrative_area_level_1')) {
-            province = component.long_name;
-            console.log(`🔍 Google Places: Province: ${province}`);
-          }
-        });
-
-        console.log('✅ Google Places: Address selection complete');
-
-        onSelect({
-          address: fullAddress,
-          latitude: location.lat,
-          longitude: location.lng,
-          city: city,
-          province: province,
-        });
-      }
-    } catch (error) {
-      console.error('Error geocoding address:', error);
-      // Still call onSelect with just the address if geocoding fails
+      // Placeholder: return the address only. Replace with Mapbox geocoding when available.
       onSelect({
         address: fullAddress,
         latitude: 0,
         longitude: 0,
       });
+    } catch (error) {
+      onSelect({ address: fullAddress, latitude: 0, longitude: 0 });
     } finally {
       setLoading(false);
     }
